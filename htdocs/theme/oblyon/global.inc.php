@@ -4101,13 +4101,21 @@ otherwise color shifts while dragging when bar can't keep up with mouse */
 \*------------------------------------*/
 
 div.tabs {
-    clear: both;
+	text-align: <?php print $left; ?>;
+	margin-top: 15px;
+	margin-left: 6px;
+	margin-bottom: -3px;
+	padding-left: 3px;
+	padding-right: 6px;
+	clear: both;
     font-weight: normal;
     height: 100%;
-    margin: 15px 0 -4px 6px;
-    padding: 0 6px 3px 0;
-    text-align: <?php print $left; ?>;
 }
+
+div.tabsElem {
+	margin-top: 1px;
+	margin-left: 5px;
+}	/* To avoid overlap of tabs when not browser */
 
 div.tabBar {
     background-color: <?php echo $colorbline; ?>;
@@ -4142,43 +4150,6 @@ a.tabTitle {
     max-height: 14px;
 }
 
-
-a.tab:link,
-a.tab:visited,
-a.tab:hover,
-a.tab#active {
-    background-color: rgba(0,0,0, .04);
-    margin: 0 .3em;
-    padding: 10px 12px 10px;
-    border: 1px solid rgba(0,0,0, .16);
-    border-bottom: none;
-    text-decoration: none;
-    white-space: nowrap;
-    box-shadow: 0 0 1px rgba(0,0,0, .04);
-    -webkit-box-shadow: 0 0 1px rgba(0,0,0, .04);
-    transition: all .3s ease-in-out;
-    -moz-transition: all .3s ease-in-out;
-    -webkit-transition: all .3s ease-in-out;
-}
-
-a.tab#active,
-a.tab.tabactive {
-    background-color: <?php echo $colorbline; ?>;
-    box-shadow: 0 -1px 0 rgba(0,0,0, .04);
-    -webkit-box-shadow: 0 -1px 0 rgba(0,0,0, .04);
-    font-weight: 500;
-    position: relative;
-}
-
-a.tab.tabactive:hover {
-    background-color: <?php echo $colorbline; ?>;
-    border: 1px solid rgba(0,0,0, .16);
-    border-bottom: none;
-    box-shadow: 0 -1px 0 rgba(0,0,0, .04);
-    -webkit-box-shadow: 0 -1px 0 rgba(0,0,0, .04);
-    color: <?php print $maincolor; ?>;
-}
-
 a.tab {
     color: <?php echo $colorfline; ?>;
     font-weight: normal;
@@ -4187,6 +4158,7 @@ a.tab {
 a.tab:hover, a.tab:focus {
     background-color: rgba(0,0,0, .16);
     color: <?php print $maincolor; ?>;
+	paddinf
 }
 
 a.tabimage {
@@ -4226,6 +4198,11 @@ div.tabBar ul li {
     margin-<?php print $left; ?>: 30px !important;
 }
 
+/* Payment Screen : Pointer cursor in the autofill image */
+.AutoFillAmount {
+	cursor:pointer;
+}
+
 div.popuptabset {
     background-color: <?php echo $colorbline; ?>;
     padding: 5px;
@@ -4242,6 +4219,93 @@ div.popuptab {
 @media only screen and (max-width: 570px)
 {
 
+}
+
+/* ============================================================================== */
+/* Buttons for actions                                                            */
+/* ============================================================================== */
+
+div.tabsAction {
+	margin: 20px 0em 30px 0em;
+	padding: 0em 0em;
+	text-align: right;
+}
+div.tabsActionNoBottom {
+	margin-bottom: 0px;
+}
+div.tabsAction > a {
+	margin-bottom: 16px !important;
+}
+
+a.tabTitle {
+	color: rgba(0,0,0,0.4) !important;
+	text-shadow:1px 1px 1px #ffffff;
+	font-family: <?php print $fontlist ?>;
+	font-weight: normal !important;
+	padding: 4px 6px 2px 0px;
+	margin-<?php print $right; ?>: 10px;
+	text-decoration: none;
+	white-space: nowrap;
+}
+.tabTitleText {
+	display: none;
+}
+.imgTabTitle {
+	max-height: 14px;
+}
+div.tabs div.tabsElem:first-of-type a.tab {
+	margin-left: 0px !important;
+}
+
+a.tabunactive {
+	color: var(--colortextlink) !important;
+}
+a.tab:link, a.tab:visited, a.tab:hover, a.tab#active {
+	font-family: <?php print $fontlist ?>;
+	padding: 12px 14px 13px;
+	text-decoration: none;
+	white-space: nowrap;
+
+	background-image: none !important;
+}
+
+.tabactive, a.tab#active {
+	background-color: <?php echo $colorbline; ?>;
+	margin: 0 0.2em 0 0.2em !important;
+	text-decoration: none;
+
+	border: 1px solid rgba(0,0,0, .16);
+	border-bottom: none;
+}
+.tabunactive, a.tab#unactive {
+	border: 1px solid rgba(0,0,0, .16);
+	border-bottom: 0px !important;
+}
+a.tabimage {
+	color: #434956;
+	font-family: <?php print $fontlist ?>;
+	text-decoration: none;
+	white-space: nowrap;
+}
+
+td.tab {
+	background: #dee7ec;
+}
+
+span.tabspan {
+	background: #dee7ec;
+	color: #434956;
+	font-family: <?php print $fontlist ?>;
+	padding: 0px 6px;
+	margin: 0em 0.2em;
+	text-decoration: none;
+	white-space: nowrap;
+	-webkit-border-radius:4px 4px 0px 0px;
+	border-radius:4px 4px 0px 0px;
+
+	border-<?php print $right; ?>: 1px solid #555555;
+	border-<?php print $left; ?>: 1px solid #D8D8D8;
+	border-top: 1px solid #D8D8D8;
 }
 
 /* ============================================================================== */
