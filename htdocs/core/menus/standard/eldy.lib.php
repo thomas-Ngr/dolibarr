@@ -466,9 +466,9 @@ function print_eldy_menu($db, $atarget, $type_user, &$tabMenu, &$menu, $noout = 
 		}
 	}
 
+
 	// Show personalized menus
 	$menuArbo = new Menubase($db, 'eldy');
-
 	$newTabMenu = $menuArbo->menuTopCharger('', '', $type_user, 'eldy', $tabMenu); // Return tabMenu with only top entries
 
 	$num = count($newTabMenu);
