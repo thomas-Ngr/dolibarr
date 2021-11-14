@@ -2455,6 +2455,30 @@ div.login_block {
     <?php } ?>
 }
 
+div.login_block a {
+	color: <?php print $bgnavtop_txt; ?>;
+	display: inline-block;
+}
+div.login_block span.aversion {
+	color: <?php print $bgnavtop_txt; ?>;
+	filter: contrast(0.7);
+}
+div.login_block table {
+	display: inline;
+}
+div.login {
+	white-space:nowrap;
+	font-weight: bold;
+	float: right;
+}
+div.login a {
+	color: <?php print $bgnavtop_txt; ?>;
+}
+div.login a:hover {
+	color: <?php print $maincolor; ?>;
+	text-decoration:underline;
+}
+
 div.login_block:after {
     /*content: '\f013';*/
     color: <?php print $bgnavtop_txt; ?>;
@@ -2607,24 +2631,22 @@ div.login_block_other {
     display: block;
 }
 .login_block_getinfo .atoplogin, .login_block_getinfo .atoplogin:hover {
-    color: #333 !important;
-    font-weight: normal !important;
+	color: #333 !important;
+	font-weight: normal !important;
 }
 .alogin, .alogin:hover {
-    font-weight: normal !important;
-    padding-top: 2px;
+	font-weight: normal !important;
+	padding-top: 2px;
 }
 .alogin:hover, .atoplogin:hover {
-    text-decoration:none !important;
+	text-decoration:underline !important;
 }
-
+span.fa.atoplogin, span.fa.atoplogin:hover {
+	font-size: 16px;
+	text-decoration: none !important;
+}
 .atoplogin #dropdown-icon-down, .atoplogin #dropdown-icon-up {
-    font-size: 0.7em;
-}
-
-span.fal.atoplogin, span.fal.atoplogin:hover {
-    font-size: 16px;
-    text-decoration: none !important;
+	font-size: 0.7em;
 }
 
 .login_block_elem img.printer,
@@ -2654,6 +2676,8 @@ img.login, img.printer, img.help, img.entity {
     height: <?php echo $disableimages ? '26' : '32'; ?>px;
     border-radius: 50%;
     background-size: contain;
+	border: 1px solid;
+	border-color: rgba(255, 255, 255, 0.2);
 }
 img.userphoto {				/* size for user photo in lists */
     border-radius: 0.72em;
@@ -2669,6 +2693,13 @@ img.userphotosmall {		/* size for user photo in lists */
     height: 1.2em;
     background-size: contain;
     vertical-align: middle;
+	background-color: #FFF;
+}
+img.userphoto[alt="Gravatar avatar"], img.photouserphoto.dropdown-user-image[alt="Gravatar avatar"] {
+	background: #fff;
+}
+form[name="addtime"] img.userphoto {
+	border: 1px solid #444;
 }
 
 .span-icon-user {
@@ -5235,19 +5266,21 @@ table.dp {
 
 
 /* ============================================================================== */
-/*  Afficher/cacher                                                               */
+/*  Show/Hide                                                                     */
 /* ============================================================================== */
 
 div.visible {
-    display: block;
+	display: block;
 }
 
-div.hidden, td.hidden, img.hidden, span.hidden {
-    display: none;
+div.hidden, td.hidden, img.hidden, span.hidden, div.showifmore {
+	display: none;
 }
-
+.unvisible {
+	visibility: hidden;
+}
 tr.visible {
-    display: block;
+	display: block;
 }
 
 /* ============================================================================== */
