@@ -4189,7 +4189,6 @@ a.tab {
 a.tab:hover, a.tab:focus {
     background-color: rgba(0,0,0, .16);
     color: <?php print $maincolor; ?>;
-	paddinf
 }
 
 a.tabimage {
