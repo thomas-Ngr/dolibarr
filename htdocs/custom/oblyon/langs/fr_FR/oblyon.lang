@@ -58,6 +58,9 @@ MicroMenuLeftBarHideLeftIconsWarning = Attention. Incompatible avec l'option "Ma
 MicroMenuLeftBarCompanyNameWarning = Attention. Incompatible avec l'option "Afficher le nom de l'entreprise".
 EffectMicroMenuHover = Déployé au passage de souris
 EffectMicroMenuOnly = Ne pas déployer
+LoginRight = Décentrer le bloc de connexion sur la droite de l'écran
+CardBehavior = Comportement des fiches
+FixAreaRefAndTabAction = Fixer le bandeau des références et les boutons d'actions pendant le défilement verticale
 
 #
 # Colors page

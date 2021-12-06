@@ -1656,8 +1656,7 @@ td.showDragHandle {
 }
 
 #id-right,
-#id-left,
-.side-nav {
+#id-left {
     display: table-cell;
     <?php if ($conf->global->OBLYON_HIDE_LEFTMENU || $conf->dol_optimize_smallscreen) { ?>
         float: left;
@@ -1668,6 +1667,19 @@ td.showDragHandle {
 }
 
 .side-nav {
+	vertical-align: top;
+<?php if($conf->global->OBLYON_STICKY_LEFTBAR) { ?>
+	position: fixed;
+	overflow-y: auto !important;
+	overflow-x: hidden;
+<?php } else { ?>
+    display: table-cell;
+    <?php if ($conf->global->OBLYON_HIDE_LEFTMENU || $conf->dol_optimize_smallscreen) { ?>
+        float: left;
+    <?php } else { ?>
+        float: none;
+    <?php } ?>
+<?php } ?>
 <?php if ( $conf->global->MAIN_MENU_INVERT ) { ?>
     background-color: <?php print $bgnavtop; ?>;
 <?php } else { ?>
@@ -1901,6 +1913,15 @@ div.attachareaformuserfileecm {
 	padding-bottom: 0;
 }
 div.arearef {
+<?php if ($conf->global->FIX_AREAREF_TABACTION) { ?>
+	position: sticky;
+	<?php if ($conf->global->MAIN_MENU_INVERT) { ?>
+	top: 52px;
+	<?php } else { ?>
+	top: 64px;
+	<?php } ?>
+	background: inherit;
+<?php } ?>
 	padding-top: 2px;
 	margin-bottom: 10px;
 	padding-bottom: 10px;
@@ -2325,6 +2346,14 @@ li.item-heading:hover > .sec-nav__link {
 
 li.sec-nav__sub-item {
     color: <?php print $bgnavleft_txt; ?>;
+}
+li.sec-nav__sub-item:hover, li.sec-nav__sub-item sec-nav__link:hover {
+	background-color: <?php print $bgnavleft_hover; ?>;
+	color: <?php print $bgnavleft_txt_hover; ?>;
+}
+li.sec-nav__sub-item:focus, li.sec-nav__sub-item sec-nav__link:focus {
+	background-color: <?php print $bgnavleft_hover; ?>;
+	color: <?php print $bgnavleft_txt_active; ?>;
 }
 
 .caret {
@@ -4166,6 +4195,15 @@ div.tabsAction {
     margin: 20px 0 10px 0;
     padding: 0;
     text-align: <?php print $right; ?>;
+<?php if ($conf->global->FIX_AREAREF_TABACTION) { ?>
+	position: sticky;
+	bottom: 0;
+	<?php if (GETPOST("optioncss") == 'print') {	?>
+    background-color: #fff !important;
+	<?php } else { ?>
+    background-color: <?php print $bgcolor; ?> !important;
+	<?php } ?>
+<?php } ?>
 }
 
 a.tabTitle {
@@ -4621,11 +4659,11 @@ th.liste_titre_sel,
 tr.liste_titre_sel td,
 td.liste_titre_sel,
 form.liste_titre_sel div {
-    background-color: #333;
+ /*   background-color: #333;
     color: #f7f7f7;
     font-weight: normal;
     text-decoration: none;
-    white-space: normal;
+    white-space: normal;	*/
 }
 
 th.liste_titre>img,
