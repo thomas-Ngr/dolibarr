@@ -7712,11 +7712,6 @@ div.pagination li:first-child span {
     border-top-left-radius: 4px;
     border-bottom-left-radius: 4px;
 }
-div.pagination li:last-child a,
-div.pagination li:last-child span {
-    border-top-right-radius: 4px;
-    border-bottom-right-radius: 4px;
-}
 div.pagination li a:hover,
 div.pagination li span:hover,
 div.pagination li a:focus,
