@@ -77,6 +77,7 @@ if ($action == 'set') {
 if ($action == 'setvar'){
   $res = dolibarr_set_const($db, 'OBLYON_EFFECT_LEFTMENU', GETPOST('OBLYON_EFFECT_LEFTMENU'),'chaine',0,'',$conf->entity);
   $res = dolibarr_set_const($db, 'OBLYON_EFFECT_REDUCE_LEFTMENU', GETPOST('OBLYON_EFFECT_REDUCE_LEFTMENU'),'chaine',0,'',$conf->entity);
+  $res = dolibarr_set_const($db, 'OBLYON_FONT_SIZE', GETPOST('OBLYON_FONT_SIZE'),'chaine',0,'',$conf->entity);
 
   if (! $res > 0) $error++;
 
@@ -459,6 +460,13 @@ else
     print img_picto ( $langs->trans ( "Disabled" ), 'switch_off' );
     print "</a></td>\n";
 }
+print '</tr>';
+// General
+print '<tr class="liste_titre"><td colspan="2">'.$langs->trans('General').'</td></tr>';
+// FOnt size
+print '<tr class="oddeven">';
+print '<td>'.$langs->trans('OblyonFontSize').'</td>';
+print '<td><input type="number" class="minwidth400" id="OBLYON_FONT_SIZE" name="OBLYON_FONT_SIZE" dir="rtl" min="10" max="16" value="'.(!empty($conf->global->OBLYON_FONT_SIZE) ? $conf->global->OBLYON_FONT_SIZE : '14').'"></td>';
 print '</tr>';
 
 print '</table>';

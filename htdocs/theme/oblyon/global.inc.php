@@ -475,7 +475,7 @@ hr { border: 0; border-top: 1px solid #ccc; }
     cursor: pointer;
 }
 td button.liste_titre span {
-    color: #fff;
+    color: <?php print $colorftitle; ?>;
 }
 /* ============================================================================== */
 /*	Module website 																  */
@@ -2640,9 +2640,9 @@ div.login_block_other {
 .login_block_elem a:hover,
 .login_block td.classfortooltip a:hover {
     <?php if ($conf->global->MAIN_MENU_INVERT) { ?>
-        color: <?php print $bgnavleft_txt; ?>;
+        color: <?php print $bgnavleft_txt_hover; ?>;
     <?php } else { ?>
-        color: <?php print $bgnavtop_txt; ?>;
+        color: <?php print $bgnavtop_txt_hover; ?>;
     <?php } ?>
 }
 
@@ -2898,9 +2898,13 @@ div.login a:hover {
     -webkit-transition: all .2s ease-in-out;
 }
 
-.sec-nav .sec-nav__link:hover,
+.sec-nav .sec-nav__link:hover {
+	background-color: <?php print $bgnavleft_hover; ?>;
+	color: <?php print $bgnavleft_txt_hover; ?>;
+}
 .sec-nav .sec-nav__link:focus {
-    color: <?php print $maincolor; ?>;
+	background-color: <?php print $bgnavleft_hover; ?>;
+	color: <?php print $bgnavleft_txt_active; ?>;
 }
 
 .vmenu .sec-nav__item.item-heading {
@@ -4177,6 +4181,12 @@ div.tabsElem {
 	margin-left: 5px;
 }	/* To avoid overlap of tabs when not browser */
 
+div.tabsElem:hover,
+div.tabsElem a.tab:hover {
+	background-color: <?php print $bgnavleft_hover; ?>;
+	color: <?php print $bgnavleft_txt_hover; ?>;
+}
+
 div.tabBar {
     background-color: <?php echo $colorbline; ?>;
     border: 1px solid rgba(0,0,0, .16);
@@ -4204,6 +4214,13 @@ div.tabsAction {
     background-color: <?php print $bgcolor; ?> !important;
 	<?php } ?>
 <?php } ?>
+}
+
+div.tabactive,
+div.tabactive a.tab {
+	background-color: <?php print $bgnavleft_hover; ?>;
+	color: <?php print $bgnavleft_txt_active; ?>;
+	height: 38px;
 }
 
 a.tabTitle {
@@ -4348,6 +4365,7 @@ a.tab:link, a.tab:visited, a.tab:hover, a.tab#active {
 .tabunactive, a.tab#unactive {
 	border: 1px solid rgba(0,0,0, .16);
 	border-bottom: 0px !important;
+	height: 38px;
 }
 a.tabimage {
 	color: #434956;
@@ -4495,7 +4513,7 @@ table.noborder .liste_titre td:last-child { padding-<?php print $right; ?>: 10px
 form#searchFormList div.liste_titre { padding: 3px 10px; }
 
 .liste_titre_filter {
-    background: <?php print $maincolor; ?> !important;
+    background: <?php print $colorbtitle; ?> !important;
 }
 
 /* table liste -bank- e-mailing */
@@ -4589,8 +4607,8 @@ tr.liste_titre,
 tr.liste_titre_sel,
 form.liste_titre,
 form.liste_titre_sel {
-    background-color: <?php print $maincolor; ?>;
-    color: #f4f4f4;
+    background-color: <?php print $colorbtitle; ?>;
+    color: <?php print $colorftitle; ?>;
     font-family: <?php print $fontboxtitle; ?>;
     font-size: 1em;
     font-weight: normal;
@@ -4606,7 +4624,7 @@ tr.liste_titre_sel a,
 th.liste_titre_sel a,
 form.liste_titre a,
 form.liste_titre_sel a {
-    color: #f4f4f4 !important;
+    color: <?php print $colorftitle; ?> !important;
 }
 
 .liste_titre_sel { font-weight: bold!important; }
@@ -7711,6 +7729,11 @@ div.pagination li:first-child span {
     margin-left: 0;
     border-top-left-radius: 4px;
     border-bottom-left-radius: 4px;
+}
+div.pagination li:last-child a,
+div.pagination li:last-child span {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
 }
 div.pagination li a:hover,
 div.pagination li span:hover,

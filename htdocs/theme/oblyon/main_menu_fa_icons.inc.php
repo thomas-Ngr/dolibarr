@@ -75,7 +75,7 @@
 }
 
 .icon--margins:before {
-    content: '\f1ec';
+    content: '\f643';
 }
 
 .icon--project:before,
@@ -214,7 +214,7 @@
 }
 
 .icon--stock:before {
-    content: '\f468';
+    content: '\f480';
 }
 
 .icon--tripsandexpenses:before,
