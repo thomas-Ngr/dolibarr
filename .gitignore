@@ -56,3 +56,6 @@ package-lock.json
 
 doc/install.lock
 test/phpunit/testvirus.txt
+
+#Modules
+htdocs/includes/OAuth/OAuth2/Service/WordPress.php
