@@ -44,8 +44,12 @@ $dashboard_colors = array (
     'OBLYON_INFOXBOX_WEATHER_COLOR',
     'OBLYON_INFOXBOX_ACTION_COLOR',             // #b46080
     'OBLYON_INFOXBOX_PROJECT_COLOR',            // #6c6a98
-	'OBLYON_INFOXBOX_CUSTOMER_COLOR',           // #99a17d PROPAL / FACTURE / COMMANDE
-	'OBLYON_INFOXBOX_SUPPLIER_COLOR',           // #599caf SUPPLIER_PROPOSAL / INVOICE_SUPPLIER / ORDER_SUPPLIER
+	'OBLYON_INFOXBOX_CUSTOMER_PROPAL_COLOR',    // #99a17d PROPAL
+	'OBLYON_INFOXBOX_CUSTOMER_ORDER_COLOR',     // #99a17d COMMANDE
+	'OBLYON_INFOXBOX_CUSTOMER_INVOICE_COLOR',   // #99a17d FACTURE
+	'OBLYON_INFOXBOX_SUPPLIER_PROPAL_COLOR',    // #599caf SUPPLIER_PROPOSAL
+	'OBLYON_INFOXBOX_SUPPLIER_ORDER_COLOR',     // #599caf ORDER_SUPPLIER
+	'OBLYON_INFOXBOX_SUPPLIER_INVOICE_COLOR',   // #599caf INVOICE_SUPPLIER
 	'OBLYON_INFOXBOX_CONTRAT_COLOR',            // #469686
 	'OBLYON_INFOXBOX_BANK_COLOR',               // #c5903e
 	'OBLYON_INFOXBOX_ADHERENT_COLOR',           // #79633f
@@ -247,13 +251,42 @@ print '<input type="hidden" name="action" value="update">';
 // Colors
 print '<table class="noborder as-settings-colors">';
 
-if($conf->global->OBLYON_MAIN_VERSION == "easya") {
     // Infobox enable
     print '<tr class="liste_titre">';
     print '<td colspan="2">' . $langs->trans('EnableDashboardBlocOrNot') . '</td>';
     print '</tr>' . "\n";
 
-    // InfoxBoxMeteo
+    // Activation des statistiques globales
+    print '<tr class="oddeven">';
+    print '<td>' . $langs->trans('DisableGlobalBoxStats') . '</td>';
+    $name = 'MAIN_DISABLE_GLOBAL_BOXSTATS';
+    if (!empty($conf->global->MAIN_DISABLE_GLOBAL_BOXSTATS)) {
+        print '<td><a href="' . $_SERVER ['PHP_SELF'] . '?action=set&name=' . $name . '&value=0">';
+        print img_picto($langs->trans("Enabled"), 'switch_on');
+        print "</a></td>\n";
+    } else {
+        print '<td><a href="' . $_SERVER ['PHP_SELF'] . '?action=set&name=' . $name . '&value=1">';
+        print img_picto($langs->trans("Disabled"), 'switch_off');
+        print "</a></td>\n";
+    }
+    print '</tr>';
+
+    // Invertion des couleurs de fond et d'icone
+    print '<tr class="oddeven">';
+    print '<td>' . $langs->trans('InfoboxColorOnBackground') . '</td>';
+    $name = 'THEME_INFOBOX_COLOR_ON_BACKGROUND';
+    if (!empty($conf->global->THEME_INFOBOX_COLOR_ON_BACKGROUND)) {
+        print '<td><a href="' . $_SERVER ['PHP_SELF'] . '?action=set&name=' . $name . '&value=0">';
+        print img_picto($langs->trans("Enabled"), 'switch_on');
+        print "</a></td>\n";
+    } else {
+        print '<td><a href="' . $_SERVER ['PHP_SELF'] . '?action=set&name=' . $name . '&value=1">';
+        print img_picto($langs->trans("Disabled"), 'switch_off');
+        print "</a></td>\n";
+    }
+    print '</tr>';
+
+	// InfoxBoxMeteo
     print '<tr class="oddeven">';
     print '<td>' . $langs->trans('MAIN_DISABLE_METEO') . '</td>';
     $name = 'MAIN_DISABLE_METEO';
@@ -268,6 +301,7 @@ if($conf->global->OBLYON_MAIN_VERSION == "easya") {
     }
     print '</tr>';
 
+if($conf->global->OBLYON_MAIN_VERSION == "easya") {
     // InfoxBoxAgenda
     print '<tr class="oddeven">';
     print '<td>' . $langs->trans('OBLYON_INFOXBOX_ACTION_COLOR') . '</td>';

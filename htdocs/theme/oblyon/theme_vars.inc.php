@@ -106,34 +106,19 @@
 	$theme_bgcolor										= array(hexdec('F4'), hexdec('F4'), hexdec('F4'));
 	$theme_bgcoloronglet								= array(hexdec('DE'), hexdec('E7'), hexdec('EC'));
 	// Colors
-	$colorbackhmenu1									= '38,60,92'; // topmenu
-	$colorbackvmenu1									= '250,250,250'; // vmenu
 	$colortopbordertitle1								= '215,215,215'; // top border of title
 	$colorbacktitle1									= '233,234,237'; // title of tables,list
-	$colorbacktabcard1									= '255,255,255'; // card
-	$colorbacktabactive									= '234,234,234';
 	$colorbacklineimpair1								= '255,255,255'; // line impair
 	$colorbacklineimpair2								= '255,255,255'; // line impair
 	$colorbacklinepair1									= '251,251,251'; // line pair
 	$colorbacklinepair2									= '251,251,251'; // line pair
-	$colorbacklinepairhover								= '230,237,244'; // line hover
-	$colorbacklinepairchecked							= '230,237,244'; // line checked
 	$colorbacklinebreak									= '248,247,244'; // line break
-	$colorbackbody										= '255,255,255';
 	$colortexttitlenotab								= '35,135,140'; // 150,90,121 140,80,10 or 10,140,80  #875a7b  green=0,123,140, violet: 0,50,120
 	$colortexttitlenotab2								= '100,0,100'; // 150,90,121 140,80,10 or 10,140,80  #875a7b  green=0,123,140, violet: 0,50,120
-	$colortexttitle										= '40,40,60';
-	$colortexttitlelink									= '10, 20, 100';
 	$colortext											= '0,0,0';
 	$colortextlink										= '10, 20, 100';
 	$toolTipBgColor										= 'rgba(255, 255, 255, 0.96)';
 	$toolTipFontColor									= '#333';
-	$colorBorderInfo									= '255, 170, 0';	// '135, 207, 210';
-	$colorBackInfo										= '255, 170, 0';	// '239, 248, 252';
-	$colorBorderWarning									= '242, 207, 135';
-	$colorBackWarning									= '252, 248, 227';
-	$colorBorderError									= '255, 0, 0';	// '242, 135, 135';
-	$colorBackError										= '255, 0, 0';	// '239, 207, 207';
 	// text color
 	$textSuccess										= '#28a745';
 	$colorblind_deuteranopes_textSuccess				= '#37de5d';
