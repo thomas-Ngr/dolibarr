@@ -1325,7 +1325,7 @@ if (!empty($arrayfields['s.tva_intra']['checked'])) {
 	print_liste_field_titre($arrayfields['s.tva_intra']['label'], $_SERVER["PHP_SELF"], "s.tva_intra", "", $param, '', $sortfield, $sortorder, 'nowrap ');
 }
 if (!empty($arrayfields['customerorsupplier']['checked'])) {
-	print_liste_field_titre(''); // type of customer
+	print_liste_field_titre($arrayfields['customerorsupplier']['label'], $_SERVER['PHP_SELF'], '', '', $param, '', $sortfield, $sortorder, 'center '); // type of customer
 }
 if (!empty($arrayfields['s.fk_prospectlevel']['checked'])) {
 	print_liste_field_titre($arrayfields['s.fk_prospectlevel']['label'], $_SERVER["PHP_SELF"], "s.fk_prospectlevel", "", $param, '', $sortfield, $sortorder, 'center ');
