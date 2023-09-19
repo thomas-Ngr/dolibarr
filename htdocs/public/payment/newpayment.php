@@ -1320,11 +1320,13 @@ if ($source == 'contractline') {
 	}
 
 	$contract->fetchObjectLinked('', '', '', 'invoice');
-	foreach ($contract->linkedObjects['facture'] as $invoice) {
-		if ($invoice->element == 'facture' && count($invoice->lines) === 1 && $invoice->paye) {
-			$invoiceline = $contract_object->lines[0];
-			if ($invoiceline->total_ttc == $amount && (($invoiceline->fk_product == 0 && $invoiceline->description == $contractline->description) || ($invoiceline->fk_product != 0 && $invoiceline->fk_product == $contractline->fk_product && $invoiceline->qty == $contractline->qty))) {
-				$contract_line_is_paid = true;
+	if (!empty($contract->linkedObjects['facture'])) {
+		foreach ($contract->linkedObjects['facture'] as $invoice) {
+			if ($invoice->element == 'facture' && count($invoice->lines) === 1 && $invoice->paye) {
+				$invoiceline = $invoice->lines[0];
+				if ($invoiceline->total_ttc == $amount && (($invoiceline->fk_product == 0 && $invoiceline->description == $contractline->description) || ($invoiceline->fk_product != 0 && $invoiceline->fk_product == $contractline->fk_product && $invoiceline->qty == $contractline->qty))) {
+					$contract_line_is_paid = true;
+				}
 			}
 		}
 	}
@@ -2071,7 +2073,6 @@ if ($action != 'dopayment') {
 		} elseif ($source == 'donation' && $object->paid) {
 			print '<br><br><span class="amountpaymentcomplete size15x">'.$langs->trans("DonationPaid").'</span>';
 		} elseif ($source == 'contractline' && $contract_line_is_paid == true) {
-			// A contract is paid if the sum of invoices is at least equal to the price of contract.
 			print '<br><br><span class="amountpaymentcomplete size15x">'.$langs->trans("ContractLinePaid").'</span>';
 		} else {
 			// Membership can be paid and we still allow to make renewal
