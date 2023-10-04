@@ -1640,14 +1640,24 @@ class AccountancyExport
 							$objectDirPath = !empty($conf->expensereport->multidir_output[$conf->entity]) ? $conf->expensereport->multidir_output[$conf->entity] : $conf->factureexpensereport->dir_output;
 						} elseif ($line->doc_type == 'supplier_invoice') {
 							$objectDirPath = !empty($conf->fournisseur->facture->multidir_output[$conf->entity]) ? $conf->fournisseur->facture->multidir_output[$conf->entity] : $conf->fournisseur->facture->dir_output;
+							$objectDirPath.= '/'.rtrim(get_exdir($invoice->id, 2, 0, 0, $invoice, 'invoice_supplier'),'/');
 						}
 						$arrayofinclusion = array();
-						$arrayofinclusion[] = '^'.preg_quote($objectFileName, '/').'\.pdf$';
+						$arrayofinclusion[] = '^'.preg_quote($objectFileName, '/').'.*\.pdf$';
 						$fileFoundList = dol_dir_list($objectDirPath.'/'.$objectFileName, 'files', 0, implode('|', $arrayofinclusion), '(\.meta|_preview.*\.png)$', 'date', SORT_DESC, 0, true);
 						if (!empty($fileFoundList)) {
 							$attachmentFileNameTrunc = $line->doc_ref;
 							foreach ($fileFoundList as $fileFound) {
 								if (strstr($fileFound['name'], $objectFileName)) {
+
+									// skip native invoice pdfs (canelle) 
+									if ($line->doc_type == 'supplier_invoice'){
+										if ($fileFound['name'] === $objectFileName.'.pdf') continue;
+									}
+									elseif ($fileFound['name'] !== $objectFileName.'.pdf') {
+										continue;
+									}
+
 									$fileFoundPath = $objectDirPath.'/'.$objectFileName.'/'.$fileFound['name'];
 									if (file_exists($fileFoundPath)) {
 										$archiveFileList[$attachmentFileKey] = array(
