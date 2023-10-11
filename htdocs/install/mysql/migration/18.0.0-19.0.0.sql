@@ -120,4 +120,5 @@ ALTER TABLE llx_accounting_account MODIFY COLUMN pcg_type varchar(32);
 -- VPGSQL8.2 DROP INDEX uk_links;
 ALTER TABLE llx_links ADD UNIQUE INDEX uk_links (objectid, objecttype,label);
 
-
+-- Product/service not managed in stock
+ALTER TABLE llx_product ADD COLUMN not_managed_in_stock integer DEFAULT NULL;
