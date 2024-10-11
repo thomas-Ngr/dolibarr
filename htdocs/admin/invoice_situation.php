@@ -79,13 +79,12 @@ $item = $formSetup->newItem('INVOICE_USE_RETAINED_WARRANTY');
 $item->nameText = $langs->trans('AllowedInvoiceForRetainedWarranty');
 
 $arrayAvailableType = array(
-	0 => "", // don't use $showempty in selectArray since it sets a value of -1
 	Facture::TYPE_SITUATION => $langs->trans("InvoiceSituation"),
 	Facture::TYPE_STANDARD.'+'.Facture::TYPE_SITUATION => $langs->trans("InvoiceSituation").' + '.$langs->trans("InvoiceStandard"),
 );
 
 if ($action == 'edit') {
-	$item->fieldInputOverride = $form->selectarray('INVOICE_USE_RETAINED_WARRANTY', $arrayAvailableType, $conf->global->INVOICE_USE_RETAINED_WARRANTY, 0);
+	$item->fieldInputOverride = $form->selectarray('INVOICE_USE_RETAINED_WARRANTY', $arrayAvailableType, $conf->global->INVOICE_USE_RETAINED_WARRANTY, 1);
 } else {
 	$item->fieldOutputOverride= isset($arrayAvailableType[getDolGlobalString('INVOICE_USE_RETAINED_WARRANTY')]) ? $arrayAvailableType[getDolGlobalString('INVOICE_USE_RETAINED_WARRANTY')] : '';
 }
@@ -121,6 +120,7 @@ $item->fieldInputOverride = $form->getSelectConditionsPaiements($conf->global->I
 /*
  * Actions
  */
+if (GETPOSTINT('INVOICE_USE_RETAINED_WARRANTY') == -1) $_POST['INVOICE_USE_RETAINED_WARRANTY'] = 0;
 
 include DOL_DOCUMENT_ROOT.'/core/actions_setmoduleoptions.inc.php';
 
