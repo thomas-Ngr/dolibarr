@@ -370,9 +370,8 @@ class ActionsTicket extends CommonHookActions
 								$footer .= ' data-filename="'.dol_escape_htmltag($doc->filename).'" ';
 								$footer .= '>';
 
-								$mime = dol_mimetype($filePath);
 								if (empty($doc->agenda_id)) {
-									$dir_ref = $actionstatic->id;
+									$dir_ref = $arraymsgs['id'];
 									$modulepart = 'actions';
 								} else {
 									$split_dir = explode('/', $doc->filepath);
@@ -380,9 +379,13 @@ class ActionsTicket extends CommonHookActions
 									$dir_ref = implode('/', $split_dir);
 								}
 								$filePath = DOL_DATA_ROOT.'/'.$doc->filepath.'/'.$doc->filename;
+								$file_relative_path = $dir_ref.'/'.$doc->filename;
 								$mime = dol_mimetype($filePath);
-								$thumb = $dir_ref.'/thumbs/'.substr($doc->filename, 0, strrpos($doc->filename, '.')).'_mini'.substr($doc->filename, strrpos($doc->filename, '.'));
-								$doclink = DOL_URL_ROOT.'/document.php?hashp='.urlencode($doc->share);
+								if (!empty($doc->share)) {
+									$doclink = DOL_URL_ROOT.'/document.php?hashp='.urlencode($doc->share);
+								} elseif ($doc->src_object_type == 'ticket') {
+									$doclink = dol_buildpath('document.php', 1).'?modulepart='.$modulepart.'&attachment=0&file='.urlencode($file_relative_path).'&entity='.getentity('ticket', 0);
+								}
 
 								$mimeAttr = ' mime="'.$mime.'" ';
 								$class = '';

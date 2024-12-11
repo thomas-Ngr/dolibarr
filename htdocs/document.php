@@ -75,6 +75,22 @@ if ((isset($_GET["modulepart"]) && $_GET["modulepart"] == 'medias')) {
 	}
 }
 
+// Deactivate checks for documents when coming from ticket public interface.
+if (
+	isset($_GET["modulepart"])
+	&& $_GET["modulepart"] == 'ticket'
+	) {
+	if (!defined("NOLOGIN")) {
+		define("NOLOGIN", 1);
+	}
+	if (!defined("NOCSRFCHECK")) {
+		define("NOCSRFCHECK", 1); // We accept to go on this page from external web site.
+	}
+	if (!defined("NOIPCHECK")) {
+		define("NOIPCHECK", 1); // Do not check IP defined into conf $dolibarr_main_restrict_ip
+	}
+}
+
 /**
  * Header empty
  *
@@ -263,6 +279,16 @@ if (!empty($hashp)) {
 						break;
 					}
 					$i++;
+				}
+			}
+		}
+	} else if ($modulepart == 'ticket' && !getDolGlobalString('TICKET_EMAIL_MUST_EXISTS')) {
+		if ($sqlprotectagainstexternals) {
+			$resql = $db->query($sqlprotectagainstexternals);
+			if ($resql) {
+				$num = $db->num_rows($resql);
+				if ($num > 0) {
+					$accessallowed = 1;
 				}
 			}
 		}
