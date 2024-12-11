@@ -158,6 +158,11 @@ class EcmFiles extends CommonObject
 	public $src_object_id;
 
 	/**
+	 * @var int ID of linked agenda event
+	 */
+	public $agenda_id;
+
+	/**
 	 * @var int section_id		ID of section = ID of EcmDirectory, directory of manual ECM (not stored into database)
 	 */
 	public $section_id;
@@ -307,7 +312,7 @@ class EcmFiles extends CommonObject
 			$this->entity = $conf->entity;
 		}
 		// Put here code to add control on parameters values
-		if (isset($this->agenda_id)) {
+		if (!empty($this->agenda_id)) {
 			$this->agenda_id = (int) $this->agenda_id;
 		}
 
@@ -361,7 +366,7 @@ class EcmFiles extends CommonObject
 		$sql .= ' '.(!isset($this->acl) ? 'NULL' : "'".$this->db->escape($this->acl)."'").',';
 		$sql .= ' '.(!isset($this->src_object_type) ? 'NULL' : "'".$this->db->escape($this->src_object_type)."'").',';
 		$sql .= ' '.(!isset($this->src_object_id) ? 'NULL' : $this->src_object_id).',';
-		$sql .= ' '.(!isset($this->agenda_id) ? 'NULL' : (int) $this->agenda_id);
+		$sql .= ' '.(empty($this->agenda_id) ? 'NULL' : (int) $this->agenda_id);
 		$sql .= ')';
 
 		$this->db->begin();
@@ -750,7 +755,7 @@ class EcmFiles extends CommonObject
 
 		// Check parameters
 		// Put here code to add a control on parameters values
-		if (isset($this->agenda_id)) {
+		if (!empty($this->agenda_id)) {
 			$this->agenda_id = (int) $this->agenda_id;
 		}
 
