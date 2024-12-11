@@ -266,7 +266,7 @@ if (!empty($hashp)) {
 				}
 			}
 		}
-	} else if ($modulepart == 'ticket' && !getDolGlobalString('TICKET_EMAIL_MUST_EXISTS')) {
+	} elseif ($modulepart == 'ticket' && !getDolGlobalString('TICKET_EMAIL_MUST_EXISTS')) {
 		if ($sqlprotectagainstexternals) {
 			$resql = $db->query($sqlprotectagainstexternals);
 			if ($resql) {

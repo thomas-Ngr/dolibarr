@@ -3478,6 +3478,7 @@ function dol_check_secure_access_document($modulepart, $original_file, $entity, 
 		if ($fuser->hasRight('ticket', $read)) {
 			$accessallowed = 1;
 		}
+		$email_split = explode('@', $_SESSION['email_customer']);
 		// include_once DOL_DOCUMENT_ROOT.'/ticket/class/ticket.class.php';
 		$sqlprotectagainstexternals = 'WITH tickets_roles (rowid) AS (SELECT rowid FROM '.MAIN_DB_PREFIX.'c_type_contact WHERE element = "ticket")';
 		$sqlprotectagainstexternals.= ' SELECT t.rowid, t.fk_soc FROM '.MAIN_DB_PREFIX.'ticket t';
@@ -3486,9 +3487,9 @@ function dol_check_secure_access_document($modulepart, $original_file, $entity, 
 		$sqlprotectagainstexternals.= ' LEFT JOIN tickets_roles tr ON tr.rowid = ec.fk_c_type_contact';
 		$sqlprotectagainstexternals.= ' WHERE t.ref LIKE "'.$db->sanitize($refname).'"';
 		$sqlprotectagainstexternals.= ' AND (';
-		$sqlprotectagainstexternals.= ' (tr.rowid IS NOT NULL AND c.email = "'.$db->escape($_SESSION['email_customer']).'")';
+		$sqlprotectagainstexternals.= ' (tr.rowid IS NOT NULL AND c.email = "'.$db->sanitize($email_split[0]).'@'.$db->sanitize($email_split[1]).'")';
 		if (isset($_SESSION['email_customer'])) {
-			$sqlprotectagainstexternals.= ' OR t.origin_email = "'.$db->escape($_SESSION['email_customer']).'"';
+			$sqlprotectagainstexternals.= ' OR t.origin_email = "'.$db->sanitize($email_split[0]).'@'.$db->sanitize($email_split[1]).'"';
 		}
 		$sqlprotectagainstexternals.= ')';
 		$original_file = $conf->ticket->multidir_output[$entity].'/'.$original_file;

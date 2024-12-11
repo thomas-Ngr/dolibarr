@@ -381,10 +381,11 @@ class ActionsTicket extends CommonHookActions
 								$filePath = DOL_DATA_ROOT.'/'.$doc->filepath.'/'.$doc->filename;
 								$file_relative_path = $dir_ref.'/'.$doc->filename;
 								$mime = dol_mimetype($filePath);
+								$doclink = '';
 								if (!empty($doc->share)) {
 									$doclink = DOL_URL_ROOT.'/document.php?hashp='.urlencode($doc->share);
 								} elseif ($doc->src_object_type == 'ticket') {
-									$doclink = dol_buildpath('document.php', 1).'?modulepart='.$modulepart.'&attachment=0&file='.urlencode($file_relative_path).'&entity='.getentity('ticket', 0);
+									$doclink = dol_buildpath('document.php', 1).'?modulepart='.$modulepart.'&attachment=0&file='.urlencode($file_relative_path).'&entity='.getEntity('ticket', 0);
 								}
 
 								$mimeAttr = ' mime="'.$mime.'" ';
