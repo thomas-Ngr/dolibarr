@@ -63,7 +63,17 @@ if (isset($_GET["hashp"]) && !defined("NOLOGIN")) {
 }
 // Some value of modulepart can be used to get resources that are public so no login are required.
 // Keep $_GET here, GETPOST is not available yet
-if (isset($_GET["modulepart"]) && in_array($_GET["modulepart"], ['medias', 'ticket'])) {
+if ((isset($_GET["modulepart"]) && $_GET["modulepart"] == 'medias')) {
+	if (!defined("NOLOGIN")) {
+		define("NOLOGIN", 1);
+	}
+	if (!defined("NOCSRFCHECK")) {
+		define("NOCSRFCHECK", 1); // We accept to go on this page from external web site.
+	}
+	if (!defined("NOIPCHECK")) {
+		define("NOIPCHECK", 1); // Do not check IP defined into conf $dolibarr_main_restrict_ip
+	}
+} elseif (isset($_GET["modulepart"]) && $_GET["modulepart"] == 'ticket' && strpos($_SERVER['HTTP_REFERER'], 'public/ticket') !== false) {
 	if (!defined("NOLOGIN")) {
 		define("NOLOGIN", 1);
 	}
