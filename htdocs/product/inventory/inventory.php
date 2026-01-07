@@ -89,10 +89,6 @@ if (!$sortorder) {
 	$sortorder = "ASC";
 }
 
-// Sort by warehouse/product or product/warehouse
-$sortfield .= ',' . ($sortfield == 'e.ref' ? 'p.ref' : 'e.ref');
-$sortorder .= ',' . $sortorder;
-
 // Fetch optionals attributes and labels
 $extrafields->fetch_name_optionals_label($object->table_element);
 
@@ -126,6 +122,9 @@ if ($limit > 0 && $limit != $conf->liste_limit) {
 	$paramwithsearch .= '&limit='.((int) $limit);
 }
 
+// Sort by warehouse/product or product/warehouse
+$sortfield .= ',' . ($sortfield == 'e.ref' ? 'p.ref' : 'e.ref');
+$sortorder .= ',' . $sortorder;
 
 if (!getDolGlobalString('MAIN_USE_ADVANCED_PERMS')) {
 	$permissiontoadd = $user->hasRight('stock', 'creer');
