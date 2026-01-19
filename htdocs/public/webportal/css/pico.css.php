@@ -58,6 +58,27 @@ if (empty($dolibarr_nocache)) {
 } else {
 	header('Cache-Control: no-cache');
 }
+
+
+/**
+ _____   ____   _____   ____
+|_   _| |  _ \ |_   _| |  _ \
+  | |   | | | |  | |   | | | |
+  | |   | |_| |  | |   | |_| |
+  |_|   |____/   |_|   |____/
+
+TODO: This is a CSS file — remove all PHP.
+If you want customizations, use custom.css.php.
+Before doing so, ask yourself if it’s really necessary.
+
+You can also add a body class such as:
+  - direction-ltr
+  - direction-rtl
+  - login-form-right
+to change CSS behavior based on context.
+*/
+
+
 ?>
 @charset "UTF-8";
 /*!
@@ -73,7 +94,11 @@ if (empty($dolibarr_nocache)) {
 	"Cantarell", "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
 	"Segoe UI Symbol", "Noto Color Emoji";
 	--line-height: 1.5;
+	--font-weight-light: 200;
+	--font-weight-medium: 300;
 	--font-weight: 400;
+	--font-weight-semibold: 600;
+	--font-weight-bold: 700;
 	--font-size: 16px;
 	--border-radius: 0.25rem;
 	--border-width: 1px;
@@ -272,7 +297,7 @@ kbd {
 
 :where(:root) {
 	--background-color: #fff;
-	--color: hsl(<?php echo $webPortalTheme->primaryColorHsl['h']; ?>, <?php echo $webPortalTheme->primaryColorHsl['s']; ?>%, <?php echo $webPortalTheme->primaryColorHsl['l']; ?>%);
+	--color: hsl(202, 13.67%, 41.54%); /* This is default TEXT color not Primary color */
 	--h1-color: hsl(205, 30%, 15%);
 	--h2-color: #24333e;
 	--h3-color: hsl(205, 25%, 23%);
@@ -282,10 +307,11 @@ kbd {
 	--muted-color: hsl(205, 10%, 50%);
 	--muted-border-color: hsl(205, 20%, 94%);
 
+	--outline-button-background: var(--background-color);
 	--banner-background : #ededed;
-	--primary-color-hue : <?php echo $webPortalTheme->primaryColorHsl['h']; ?>;
-	--primary-color-saturation : <?php echo $webPortalTheme->primaryColorHsl['s']; ?>%;
-	--primary-color-lightness : <?php echo $webPortalTheme->primaryColorHsl['l']; ?>%;
+	--primary-color-hue : <?php echo $webPortalTheme->primaryColorHsl['h']; /* TODO : WHY ?? this is already in custom.css.php */ ?>;
+	--primary-color-saturation : <?php echo $webPortalTheme->primaryColorHsl['s']; /* TODO : WHY ?? this is already in custom.css.php */ ?>%;
+	--primary-color-lightness : <?php echo $webPortalTheme->primaryColorHsl['l']; /* TODO : WHY ?? this is already in custom.css.php */  ?>%;
 	--primary : hsl(var(--primary-color-hue), var(--primary-color-saturation), var(--primary-color-lightness));
 	--primary-hover: hsl(var(--primary-color-hue), 90%, 32%);
 	--primary-focus:  hsl(var(--primary-color-hue), var(--primary-color-saturation), var(--primary-color-lightness), 0.125);
@@ -347,13 +373,13 @@ kbd {
 	--card-background-color: var(--background-color);
 	--card-border-color: var(--muted-border-color);
 	--card-box-shadow:
-			0.0145rem 0.029rem 0.174rem rgba(27, 40, 50, 0.01698),
-			0.0335rem 0.067rem 0.402rem rgba(27, 40, 50, 0.024),
-			0.0625rem 0.125rem 0.75rem rgba(27, 40, 50, 0.03),
-			0.1125rem 0.225rem 1.35rem rgba(27, 40, 50, 0.036),
-			0.2085rem 0.417rem 2.502rem rgba(27, 40, 50, 0.04302),
-			0.5rem 1rem 6rem rgba(27, 40, 50, 0.06),
-			0 0 0 0.0625rem rgba(27, 40, 50, 0.015);
+		0.0145rem 0.029rem 0.174rem rgba(27, 40, 50, 0.01698),
+		0.0335rem 0.067rem 0.402rem rgba(27, 40, 50, 0.024),
+		0.0625rem 0.125rem 0.75rem rgba(27, 40, 50, 0.03),
+		0.1125rem 0.225rem 1.35rem rgba(27, 40, 50, 0.036),
+		0.2085rem 0.417rem 2.502rem rgba(27, 40, 50, 0.04302),
+		0.5rem 1rem 6rem rgba(27, 40, 50, 0.06),
+		0 0 0 0.0625rem rgba(27, 40, 50, 0.015);
 	--card-sectionning-background-color: #fbfbfc;
 	--dropdown-background-color: #fbfbfc;
 	--dropdown-border-color: #e1e6eb;
@@ -393,9 +419,9 @@ kbd {
 	--login-form-icon-color: hsl(var(--primary-color-hue), var(--primary-color-saturation), 50%);
 	/* Use image or Linear background */
 	--login-background : linear-gradient(
-			90deg,
-			hsl(var(--primary-color-hue), var(--primary-color-saturation), 70%),
-			hsl(var(--primary-color-hue), var(--primary-color-saturation), 90%)
+		90deg,
+		hsl(var(--primary-color-hue), var(--primary-color-saturation), 70%),
+		hsl(var(--primary-color-hue), var(--primary-color-saturation), 90%)
 	);
 
 }
@@ -510,7 +536,7 @@ kbd {
 
 [data-theme=dark] {
 	--background-color: #11191f;
-	--color: hsl(205, 16%, 77%);
+	--color: hsl(202deg 13.67% 41.54%);
 	--h1-color: hsl(205, 20%, 94%);
 	--h2-color: #e1e6eb;
 	--h3-color: hsl(205, 18%, 86%);
@@ -581,13 +607,13 @@ kbd {
 	--card-background-color: #141e26;
 	--card-border-color: var(--card-background-color);
 	--card-box-shadow:
-			0.0145rem 0.029rem 0.174rem rgba(0, 0, 0, 0.01698),
-			0.0335rem 0.067rem 0.402rem rgba(0, 0, 0, 0.024),
-			0.0625rem 0.125rem 0.75rem rgba(0, 0, 0, 0.03),
-			0.1125rem 0.225rem 1.35rem rgba(0, 0, 0, 0.036),
-			0.2085rem 0.417rem 2.502rem rgba(0, 0, 0, 0.04302),
-			0.5rem 1rem 6rem rgba(0, 0, 0, 0.06),
-			0 0 0 0.0625rem rgba(0, 0, 0, 0.015);
+		0.0145rem 0.029rem 0.174rem rgba(0, 0, 0, 0.01698),
+		0.0335rem 0.067rem 0.402rem rgba(0, 0, 0, 0.024),
+		0.0625rem 0.125rem 0.75rem rgba(0, 0, 0, 0.03),
+		0.1125rem 0.225rem 1.35rem rgba(0, 0, 0, 0.036),
+		0.2085rem 0.417rem 2.502rem rgba(0, 0, 0, 0.04302),
+		0.5rem 1rem 6rem rgba(0, 0, 0, 0.06),
+		0 0 0 0.0625rem rgba(0, 0, 0, 0.015);
 	--card-sectionning-background-color: #18232c;
 	--dropdown-background-color: hsl(205, 30%, 15%);
 	--dropdown-border-color: #24333e;
@@ -695,24 +721,24 @@ body > footer {
 
 @media (min-width: 576px) {
 	.container {
-		max-width: 510px;
+		max-width: 90%;
 		padding-right: 0;
 		padding-left: 0;
 	}
 }
 @media (min-width: 768px) {
 	.container {
-		max-width: 700px;
+		max-width: 90%;
 	}
 }
 @media (min-width: 992px) {
 	.container {
-		max-width: 920px;
+		max-width: 90%;
 	}
 }
 @media (min-width: 1200px) {
 	.container {
-		max-width: 1130px;
+		max-width: min(95%, 1800px);
 	}
 }
 
@@ -1120,12 +1146,12 @@ input[type=reset]:focus {
 
 :is(button, input[type=submit], input[type=button], [role=button]).outline,
 input[type=reset].outline {
-	--background-color: transparent;
+	--background-color: var(--outline-button-background);
 	--color: var(--primary);
 }
 :is(button, input[type=submit], input[type=button], [role=button]).outline:is([aria-current], :hover, :active, :focus),
 input[type=reset].outline:is([aria-current], :hover, :active, :focus) {
-	--background-color: transparent;
+	--background-color: var(--outline-button-background);
 	--color: var(--primary-hover);
 }
 
