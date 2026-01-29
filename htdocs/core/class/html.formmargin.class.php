@@ -108,7 +108,9 @@ class FormMargin
 
 			// calcul des marges
 			if (isset($line->fk_remise_except) && isset($conf->global->MARGIN_METHODE_FOR_DISCOUNT)) {    // remise
-				if ($conf->global->MARGIN_METHODE_FOR_DISCOUNT == '1') { // remise globale considérée comme produit
+				$manage_as_product = (getDolGlobalString('MARGIN_METHODE_FOR_DISCOUNT') == '1') || (getDolGlobalString('MARGIN_METHODE_FOR_DISCOUNT') == '3' && isModEnabled('product') && !isModEnabled('service'));
+				$manage_as_service = (getDolGlobalString('MARGIN_METHODE_FOR_DISCOUNT') == '1') || (getDolGlobalString('MARGIN_METHODE_FOR_DISCOUNT') == '3' && isModEnabled('service') && !isModEnabled('product'));
+				if ($manage_as_product) { // remise globale considérée comme produit
 					$marginInfos['pa_products'] += $pa;
 					$marginInfos['pv_products'] += $pv;
 					$marginInfos['pa_total'] += $pa;
@@ -119,8 +121,8 @@ class FormMargin
 					//	$marginInfos['margin_on_products'] += -1 * (abs($pv) - $pa);
 					//}
 					//else
-						$marginInfos['margin_on_products'] += $pv - $pa;
-				} elseif ($conf->global->MARGIN_METHODE_FOR_DISCOUNT == '2') { // remise globale considérée comme service
+					$marginInfos['margin_on_products'] += $pv - $pa;
+				} elseif ($manage_as_service ) { // remise globale considérée comme service
 					$marginInfos['pa_services'] += $pa;
 					$marginInfos['pv_services'] += $pv;
 					$marginInfos['pa_total'] += $pa;
