@@ -1058,20 +1058,20 @@ class BonPrelevement extends CommonObject
 	 *  @param  int  	$executiondate		Date to execute the transfer
 	 *  @param	int	    $notrigger			Disable triggers
 	 *  @param	string	$type				'direct-debit' or 'bank-transfer'
-     *  @param  array<int>|int  $dids   ID(s) of existing payment request(s).
-     *                                  - If $dids is 0, we use all existing requests.
-     *                                  - If $dids is an int > 0, we use the existing payment request.
-     *                                  - If $dids is an array, the created BonsPrelevement will include these payment requests.
+	 *  @param  array<int>|int  $dids   ID(s) of existing payment request(s).
+	 *                                  - If $dids is 0, we use all existing requests.
+	 *                                  - If $dids is an int > 0, we use the existing payment request.
+	 *                                  - If $dids is an array, the created BonsPrelevement will include these payment requests.
 	 *  @param	int		$fk_bank_account	Bank account ID the receipt is generated for. Will use the ID into the setup of module Direct Debit or Credit Transfer if 0.
 	 *  @param	string	$sourcetype			'invoice' or 'salary'
 	 *	@return	int							Return integer <0 if KO, No of invoice included into file if OK
 	 */
-    public function create($banque = '', $agence = '', $mode = 'real', $format = 'ALL', $executiondate = 0, $notrigger = 0, $type = 'direct-debit', $dids = 0, $fk_bank_account = 0, $sourcetype = 'invoice')
+	public function create($banque = '', $agence = '', $mode = 'real', $format = 'ALL', $executiondate = 0, $notrigger = 0, $type = 'direct-debit', $dids = 0, $fk_bank_account = 0, $sourcetype = 'invoice')
 	{
 		// phpcs:enable
 		global $conf, $langs, $user;
 
-        dol_syslog(__METHOD__ . " Bank=".$banque." Office=".$agence." mode=".$mode." format=".$format." type=".$type." dids=".$dids." fk_bank_account=".$fk_bank_account." sourcetype=".$sourcetype, LOG_DEBUG);
+		dol_syslog(__METHOD__ . " Bank=".$banque." Office=".$agence." mode=".$mode." format=".$format." type=".$type." dids=".$dids." fk_bank_account=".$fk_bank_account." sourcetype=".$sourcetype, LOG_DEBUG);
 
 		require_once DOL_DOCUMENT_ROOT . "/compta/facture/class/facture.class.php";
 		require_once DOL_DOCUMENT_ROOT . "/societe/class/societe.class.php";
@@ -1084,18 +1084,18 @@ class BonPrelevement extends CommonObject
 			}
 		}
 
-        if (!is_int($dids) && !is_array($dids)) {
-            $this->error = 'ErrorBadParametersForDirectDebitFileCreateDids';
-            return -1;
-        }
+		if (!is_int($dids) && !is_array($dids)) {
+			$this->error = 'ErrorBadParametersForDirectDebitFileCreateDids';
+			return -1;
+		}
 
 		// Clean params
 		if (empty($fk_bank_account)) {
 			$fk_bank_account = ($type == 'bank-transfer' ? getDolGlobalInt('PAYMENTBYBANKTRANSFER_ID_BANKACCOUNT') : getDolGlobalInt('PRELEVEMENT_ID_BANKACCOUNT'));
 		}
 		if (is_int($dids)) {
-            $dids = array($dids);
-        }
+			$dids = array($dids);
+		}
 
 
 		$error = 0;
@@ -2371,7 +2371,7 @@ class BonPrelevement extends CommonObject
 				$XML_DEBITOR .= '					<PstlAdr>' . $CrLf;
 				$XML_DEBITOR .= '						<Ctry>' . $row_country_code . '</Ctry>' . $CrLf;
 				$addressline1 = strtr($row_address, array(chr(13) => ", ", chr(10) => ""));
-				$addressline2 = strtr($row_zip . (($row_zip && $row_town) ? ' ' : '') . (string)$row_town, array(chr(13) => ", ", chr(10) => ""));
+				$addressline2 = strtr($row_zip . (($row_zip && $row_town) ? ' ' : '') . (string) $row_town, array(chr(13) => ", ", chr(10) => ""));
 				if (trim($addressline1)) {
 					$XML_DEBITOR .= '						<AdrLine>' . dolEscapeXML(dol_trunc(dol_string_nospecial(dol_string_unaccent($addressline1), ' '), 70, 'right', 'UTF-8', 1)) . '</AdrLine>' . $CrLf;
 				}
@@ -2435,7 +2435,7 @@ class BonPrelevement extends CommonObject
 					$XML_CREDITOR .= '				</PmtTpInf>' . $CrLf;
 				}
 				$XML_CREDITOR .= '				<Amt>' . $CrLf;
-				$XML_CREDITOR .= '				<InstdAmt Ccy="EUR">' . round((float)$row_somme, 2) . '</InstdAmt>' . $CrLf;
+				$XML_CREDITOR .= '				<InstdAmt Ccy="EUR">' . round((float) $row_somme, 2) . '</InstdAmt>' . $CrLf;
 				$XML_CREDITOR .= '				</Amt>' . $CrLf;
 				/*
 				 $XML_CREDITOR .= '				<DrctDbtTx>'.$CrLf;
@@ -2457,7 +2457,7 @@ class BonPrelevement extends CommonObject
 				$XML_CREDITOR .= '					<PstlAdr>' . $CrLf;
 				$XML_CREDITOR .= '						<Ctry>' . $row_country_code . '</Ctry>' . $CrLf;
 				$addressline1 = strtr($row_address, array(chr(13) => ", ", chr(10) => ""));
-				$addressline2 = strtr($row_zip . (($row_zip && $row_town) ? ' ' : '') . (string)$row_town, array(chr(13) => ", ", chr(10) => ""));
+				$addressline2 = strtr($row_zip . (($row_zip && $row_town) ? ' ' : '') . (string) $row_town, array(chr(13) => ", ", chr(10) => ""));
 				if (trim($addressline1)) {
 					$XML_CREDITOR .= '						<AdrLine>' . dolEscapeXML(dol_trunc(dol_string_nospecial(dol_string_unaccent($addressline1), ' '), 70, 'right', 'UTF-8', 1)) . '</AdrLine>' . $CrLf;
 				}
