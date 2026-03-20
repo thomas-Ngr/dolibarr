@@ -1,6 +1,7 @@
 includes:
 	- dev/build/phpstan/phpstan-baseline.neon
 parameters:
+	# Opendsi only
 	phpVersion: 80300 # PHP 8.3
 	tmpDir: ./.phpstan
 	parallel:
