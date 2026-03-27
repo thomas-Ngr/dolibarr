@@ -134,11 +134,11 @@ if (empty($reshook)) {
 		}
 
 		if (empty($toselect)) {
-            $errormessage = $langs->trans('ErrorBankTransferNoPaymentRequestSelected');
-            setEventMessages($errormessage, null, 'errors');
-            $action = '';
-            $error++;
-        }
+			$errormessage = $langs->trans('ErrorBankTransferNoPaymentRequestSelected');
+			setEventMessages($errormessage, null, 'errors');
+			$action = '';
+			$error++;
+		}
 
 		$bprev = new BonPrelevement($db);
 

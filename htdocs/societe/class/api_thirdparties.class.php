@@ -1135,16 +1135,16 @@ class Thirdparties extends DolibarrApi
 		// Backport from V24
 		$sql = '';
 		if ($mode === 'customer') {
-		$sql = "SELECT f.ref, f.type as factype, re.fk_facture_source, re.rowid, re.amount_ht, re.amount_tva, re.amount_ttc, re.description, re.fk_facture, re.fk_facture_line";
-		$sql .= " FROM ".MAIN_DB_PREFIX."societe_remise_except as re";
-		$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."facture as f ON f.rowid = re.fk_facture_source";
-		$sql .= " WHERE re.fk_soc = ".((int) $id);
-		if ($filter == "available") {
-			$sql .= " AND re.fk_facture IS NULL AND re.fk_facture_line IS NULL";
-		}
-		if ($filter == "used") {
-			$sql .= " AND (re.fk_facture IS NOT NULL OR re.fk_facture_line IS NOT NULL)";
-		}
+			$sql = "SELECT f.ref, f.type as factype, re.fk_facture_source, re.rowid, re.amount_ht, re.amount_tva, re.amount_ttc, re.description, re.fk_facture, re.fk_facture_line";
+			$sql .= " FROM ".MAIN_DB_PREFIX."societe_remise_except as re";
+			$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."facture as f ON f.rowid = re.fk_facture_source";
+			$sql .= " WHERE re.fk_soc = ".((int) $id);
+			if ($filter == "available") {
+				$sql .= " AND re.fk_facture IS NULL AND re.fk_facture_line IS NULL";
+			}
+			if ($filter == "used") {
+				$sql .= " AND (re.fk_facture IS NOT NULL OR re.fk_facture_line IS NOT NULL)";
+			}
 		} elseif ($mode === 'supplier') {
 			$sql = "SELECT f.ref, f.type as factype, re.fk_invoice_supplier_source, re.rowid, re.amount_ht, re.amount_tva, re.amount_ttc, re.description, re.fk_invoice_supplier, re.fk_invoice_supplier_line";
 			$sql .= " FROM ".MAIN_DB_PREFIX."societe_remise_except as re, ".MAIN_DB_PREFIX."facture_fourn as f";
@@ -1469,7 +1469,7 @@ class Thirdparties extends DolibarrApi
 			//$min = min($num, ($limit <= 0 ? $num : $limit));
 			$min = $num;
 			while ($i < $min) {
-			// end Backport from V24
+				// end Backport from V24
 				$obj = $this->db->fetch_object($result);
 				$notifications[] = $obj;
 				$i++;
@@ -1765,7 +1765,7 @@ class Thirdparties extends DolibarrApi
 			//$min = min($num, ($limit <= 0 ? $num : $limit));
 			$min = $num;
 			while ($i < $min) {
-			// end Backport from V24
+				// end Backport from V24
 				$obj = $this->db->fetch_object($result);
 
 				$account = new CompanyBankAccount($this->db);
@@ -2024,7 +2024,7 @@ class Thirdparties extends DolibarrApi
 			//$min = min($num, ($limit <= 0 ? $num : $limit));
 			$min = $num;
 			while ($i < $min) {
-			// end Backport from V24
+				// end Backport from V24
 				$obj = $this->db->fetch_object($result);
 
 				$account = new CompanyBankAccount($this->db);
@@ -2102,7 +2102,7 @@ class Thirdparties extends DolibarrApi
 		//$min = min($num, ($limit <= 0 ? $num : $limit));
 		$min = $num;
 		while ($i < $min) {
-		// end Backport from V24
+			// end Backport from V24
 			$obj = $this->db->fetch_object($result);
 			$account = new SocieteAccount($this->db);
 
@@ -2487,7 +2487,7 @@ class Thirdparties extends DolibarrApi
 			//$min = min($num, ($limit <= 0 ? $num : $limit));
 			$min = $num;
 			while ($i < $min) {
-			// end Backport from V24
+				// end Backport from V24
 				$obj = $this->db->fetch_object($result);
 				$account = new SocieteAccount($this->db);
 				$account->fetch($obj->rowid);
