@@ -591,15 +591,15 @@ if (!empty($conf->use_javascript_ajax)) {	// If javascript on
 	$s .= '		jQuery(".peruser_holiday").addClass("peruser_holiday_imp");';
 	$s .= '	}';
 	// add check_holiday params to navigation links when click on check holiday input
-	$s .= ' var checkHoliday = jQuery(this).is(":checked") ? 1 : 0;';
+	$s .= '	var checkHoliday = jQuery(this).is(":checked") ? 1 : 0;';
 	$s .= '	jQuery(".navselectiondate a, .navmode a").each(function(index, elem) { ';
 	$s .= '		var navLinkElem = jQuery(elem);';
 	$s .= '		var navLinkHref = navLinkElem.attr("href");';
-	$s .= '		if (navLinkHref.indexOf("check_holiday") === -1) {';
-	$s .= '			navLinkElem.attr("href", navLinkHref+"&check_holiday="+checkHoliday);';
-	$s .= '		} else {';
-	$s .= '			navLinkElem.attr("href", navLinkHref.replace(/check_holiday=[0|1]/, "check_holiday="+checkHoliday));';
-	$s .= '		}';
+	$s .= '		var navLinkParts = navLinkHref.split("?");';
+	$s .= '		var navLinkPath = navLinkParts[0];';
+	$s .= '		var navLinkParams = new URLSearchParams(navLinkParts[1] || "");';
+	$s .= '		navLinkParams.set("check_holiday", checkHoliday);';
+	$s .= '		navLinkElem.attr("href", navLinkPath + "?" + navLinkParams.toString());';
 	$s .= '	});';
 	$s .= '});'."\n";
 
