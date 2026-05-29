@@ -1178,7 +1178,7 @@ class BonPrelevement extends CommonObject
 				// Use the RIB from the payment request; fall back to the thirdparty default RIB when none is specified
 				$sql .= " LEFT JOIN " . $this->db->prefix() . "societe_rib as sr";
 				$sql .= " ON (";
-				$sql .= "   sr.rowid = pd.fk_societe_rib";
+				$sql .= "   (sr.rowid IS NOT NULL AND sr.rowid = pd.fk_societe_rib)";
 				$sql .= "   OR (pd.fk_societe_rib IS NULL AND sr.fk_soc = f.".$this->db->sanitize($socOrUser)." AND sr.default_rib = 1)";
 				$sql .= " )";
 			} else {
@@ -1886,7 +1886,7 @@ class BonPrelevement extends CommonObject
 				$sql .= " AND f.fk_soc = soc.rowid";
 				$sql .= " AND soc.fk_pays = c.rowid";
 				$sql .= " AND (";
-				$sql .= "   rib.rowid = pd.fk_societe_rib";
+				$sql .= "   (rib.rowid IS NOT NULL AND rib.rowid = pd.fk_societe_rib)";
 				$sql .= "   OR (pd.fk_societe_rib IS NULL AND rib.fk_soc = f.fk_soc AND rib.default_rib = 1)";
 				$sql .= " )";
 				$sql .= " AND rib.type = 'ban'";
@@ -2063,7 +2063,7 @@ class BonPrelevement extends CommonObject
 					$sql .= " AND pd.fk_facture_fourn = f.rowid";
 					$sql .= " AND f.fk_soc = soc.rowid";
 					$sql .= " AND (";
-					$sql .= "   rib.rowid = pd.fk_societe_rib";
+					$sql .= "   (rib.rowid IS NOT NULL AND rib.rowid = pd.fk_societe_rib)";
 					$sql .= "   OR (pd.fk_societe_rib IS NULL AND rib.fk_soc = f.fk_soc AND rib.default_rib = 1)";
 					$sql .= " )";
 					$sql .= " AND rib.type = 'ban'";
