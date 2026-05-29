@@ -2516,9 +2516,9 @@ class BonPrelevement extends CommonObject
 			}
 		} elseif ($reshook > 0) {
 			$XML_RESULT = $hookmanager->resPrint;
+		} else {
+			$XML_RESULT .= $hookmanager->resPrint;
 		}
-		$XML_RESULT .= $hookmanager->resPrint;
-
 		return $XML_RESULT;
 	}
 
