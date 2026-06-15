@@ -184,6 +184,8 @@ print load_fiche_titre($langs->trans($title), $linkback, 'title_setup');
 $head = aiAdminPrepareHead();
 print dol_get_fiche_head($head, 'assistant', "MCP Server", -1, "ai");
 
+print aiExperimentalSupportWarning();
+
 print '<span class="opacitymedium">' . $langs->trans("ConfigAssistantHelp") . '</span><br><br>';
 
 $form = new Form($db);
@@ -216,7 +218,7 @@ print $form->textwithpicto($langs->trans('EnableAssistant'), $langs->trans('Disa
 //print '</td>';
 //print '<td>';
 print ' &nbsp; ';
-print ajax_constantonoff('AI_ASSISTANT_ENABLED', array(), null, 0, 0, 1);
+print ajax_constantonoff('AI_ASSISTANT_ENABLED', aiExperimentalConfirmInput(), null, 0, 0, 1);
 //print ' <span class="opacitymedium">' . $langs->trans('DisableMCPAI') . '</span>';
 //print '</td>';
 //print '</tr>';

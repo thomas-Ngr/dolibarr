@@ -184,6 +184,8 @@ print load_fiche_titre($langs->trans($title), $linkback, 'title_setup');
 $head = aiAdminPrepareHead();
 print dol_get_fiche_head($head, 'tools', 'MCP Server', -1, 'ai');
 
+print aiExperimentalSupportWarning();
+
 print '<span class="opacitymedium">' . $langs->trans("ToolAccessControlHelp") . '</span><br><br>';
 
 print '<div class="marginleftonly" style="display:flex; flex-wrap:wrap; gap:40px; margin-top:15px; padding-top:15px; border-top:1px solid #ddd;">';

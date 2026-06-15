@@ -465,6 +465,47 @@ function aiAdminPrepareHead()
 }
 
 /**
+ *  Return the OpenDSI "experimental / out of support" warning banner shown on the
+ *  experimental AI module tabs (Chat Assistant, MCP server, Tool access control).
+ *
+ *  These features are backported from Dolibarr 24 and exposed at feature level 0 on
+ *  osden, but are not covered by the OpenDSI support contract. The banner makes the
+ *  out-of-support status explicit on every concerned tab.
+ *
+ *  @return string  HTML of the warning banner
+ */
+function aiExperimentalSupportWarning()
+{
+	global $langs;
+
+	return '<div class="warning" role="alert" style="margin-bottom:8px;">'
+		. img_warning() . ' ' . $langs->trans("AiExperimentalSupportWarning")
+		. '</div>';
+}
+
+/**
+ *  Return the $input array for ajax_constantonoff() that triggers a jQuery UI
+ *  confirmation dialog (Yes/No) when the admin ENABLES an experimental AI feature
+ *  (Chat Assistant, MCP server). The dialog shows the OpenDSI experimental /
+ *  out-of-support notice; enabling only proceeds if the admin confirms.
+ *
+ *  @return array<string,mixed>  Input structure consumed by ajax_constantonoff()
+ */
+function aiExperimentalConfirmInput()
+{
+	global $langs;
+
+	return array(
+		'alert' => array(
+			'set' => array(
+				'title' => $langs->transnoentities("AiExperimentalSupportTitle"),
+				'content' => $langs->transnoentities("AiExperimentalSupportWarning"),
+			),
+		),
+	);
+}
+
+/**
  * Resolve the AI provider/service currently configured for the AI Assistant
  * (e.g. "ChatGPT (OpenAI)", "Google Gemini", "Anthropic (Claude)"), so it can be
  * displayed in the chat header. The precise model name is intentionally not

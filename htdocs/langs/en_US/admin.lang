@@ -2715,3 +2715,6 @@ MCPTool=MCP Tool
 PresetsForChatAssistant=Chat Assistant Presets
 ToolAccessControl=Tool Access Control
 ToolAccessControlHelp=Manage permissions for AI tools. System tools are always enabled and cannot be disabled.
+# Experimental AI features warning (osden)
+AiExperimentalSupportTitle=Experimental feature
+AiExperimentalSupportWarning=This feature is experimental and is not covered by the OpenDSI support contract. Any reported incident will be charged against support hours.
