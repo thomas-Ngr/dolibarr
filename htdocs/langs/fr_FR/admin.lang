@@ -2700,3 +2700,13 @@ PDF_INVOICE_SHOW_BALANCE_SUMMARY= Show customer's previous and new balance
 SecurityModuleDeploymentSuccess=An external module has been deployed: %s
 SecurityModuleDeploymentError=A deployment of an external module has been tried and failed: %s
 DownloadOfModuleFileDisallowed=Download of module files not allowed (param $dolibarr_allow_download_external_modules must be set in conf.php)
+# Module IA - serveur MCP / Assistant Chat (backport Dolibarr 24)
+AI_API_MODEL=Modèle d'API IA
+AI_API_MODEL_DOCPARSING=Modèle d'IA pour l'analyse de documents
+AI_API_MODEL_HELP=Le modèle d'IA à utiliser
+Assistant=Assistant Chat
+ConfigAssistantHelp=Activez l'assistant IA privé.
+DisableAssistant=Désactiver l'assistant IA de chat
+EnableAssistant=Activez l'assistant IA de chat
+MCPServer=Serveur MCP
+MCPTool=Outil MCP
