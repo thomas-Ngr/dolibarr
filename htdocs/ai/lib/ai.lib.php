@@ -423,26 +423,24 @@ function aiAdminPrepareHead()
 	$head[$h][2] = 'custom';
 	$h++;
 
-	if (getDolGlobalString("MAIN_FEATURES_LEVEL") >= 2) {
-		$head[$h][0] = dol_buildpath("/ai/admin/assistant.php", 1);
-		$head[$h][1] = $langs->trans("Assistant");
-		$head[$h][2] = 'assistant';
-		$h++;
-	}
+	// BACKPORT NOTE (osden): upstream Dolibarr 24 gates these tabs behind
+	// MAIN_FEATURES_LEVEL >= 2 (experimental). osden exposes the AI Assistant /
+	// MCP server / tool access control at the normal feature level (0), so the
+	// experimental-level conditions have been removed.
+	$head[$h][0] = dol_buildpath("/ai/admin/assistant.php", 1);
+	$head[$h][1] = $langs->trans("Assistant");
+	$head[$h][2] = 'assistant';
+	$h++;
 
-	if (getDolGlobalString("MAIN_FEATURES_LEVEL") >= 2) {
-		$head[$h][0] = dol_buildpath("/ai/admin/server_mcp.php", 1);
-		$head[$h][1] = $langs->trans("MCPServer");
-		$head[$h][2] = 'servermcp';
-		$h++;
-	}
+	$head[$h][0] = dol_buildpath("/ai/admin/server_mcp.php", 1);
+	$head[$h][1] = $langs->trans("MCPServer");
+	$head[$h][2] = 'servermcp';
+	$h++;
 
-	if (getDolGlobalString("MAIN_FEATURES_LEVEL") >= 2) {
-		$head[$h][0] = dol_buildpath("/ai/admin/configure_tools.php", 1);
-		$head[$h][1] = $langs->trans("ToolAccessControl");
-		$head[$h][2] = 'tools';
-		$h++;
-	}
+	$head[$h][0] = dol_buildpath("/ai/admin/configure_tools.php", 1);
+	$head[$h][1] = $langs->trans("ToolAccessControl");
+	$head[$h][2] = 'tools';
+	$h++;
 
 	/*
 	$head[$h][0] = dol_buildpath("/ai/admin/myobject_extrafields.php", 1);
