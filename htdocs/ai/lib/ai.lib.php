@@ -503,6 +503,10 @@ function aiExperimentalConfirmInput()
 				// 'info' => single acknowledgement button only (no "No" button)
 				'info' => 1,
 				'yesButton' => $langs->transnoentities("AiExperimentalSupportAck"),
+				// confirmConstantAction() forces forcereload=0 in the confirm path, so the
+				// page is not refreshed and the (server-side gated) settings stay hidden after
+				// enabling. 'method' runs after setConstant() -> we reload the page from there.
+				'method' => 'aiExperimentalReload',
 			),
 		),
 	);
@@ -524,6 +528,12 @@ function aiExperimentalConfirmScript()
 				$(this).dialog("option", "position", {my: "center", at: "center", of: window});
 			});
 		});
+		// Called by confirmConstantAction() after the constant is set (see aiExperimentalConfirmInput).
+		// setConstant() runs an async POST, so we leave it a moment to complete before reloading,
+		// otherwise the navigation could abort the in-flight request.
+		window.aiExperimentalReload = function() {
+			setTimeout(function() { window.location.reload(); }, 800);
+		};
 	</script>';
 }
 
