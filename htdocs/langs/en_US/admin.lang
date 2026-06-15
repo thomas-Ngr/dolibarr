@@ -2718,3 +2718,4 @@ ToolAccessControlHelp=Manage permissions for AI tools. System tools are always e
 # Experimental AI features warning (osden)
 AiExperimentalSupportTitle=Experimental feature
 AiExperimentalSupportWarning=This feature is experimental and is not covered by the OpenDSI support contract. Any reported incident will be charged against support hours.
+AiExperimentalSupportAck=I understand

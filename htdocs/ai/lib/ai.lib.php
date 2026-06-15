@@ -500,9 +500,31 @@ function aiExperimentalConfirmInput()
 			'set' => array(
 				'title' => $langs->transnoentities("AiExperimentalSupportTitle"),
 				'content' => $langs->transnoentities("AiExperimentalSupportWarning"),
+				// 'info' => single acknowledgement button only (no "No" button)
+				'info' => 1,
+				'yesButton' => $langs->transnoentities("AiExperimentalSupportAck"),
 			),
 		),
 	);
+}
+
+/**
+ *  Return a small <script> that fixes the experimental-confirm jQuery UI dialog:
+ *  core confirmConstantAction() hardcodes height=170px which truncates our longer
+ *  notice. On dialog open we switch it to auto height and recenter it.
+ *
+ *  @return string  HTML <script> block
+ */
+function aiExperimentalConfirmScript()
+{
+	return '<script>
+		jQuery(function($) {
+			$(document).on("dialogopen", "[id^=\'confirm_AI_\']", function() {
+				$(this).dialog("option", {height: "auto", width: 520});
+				$(this).dialog("option", "position", {my: "center", at: "center", of: window});
+			});
+		});
+	</script>';
 }
 
 /**

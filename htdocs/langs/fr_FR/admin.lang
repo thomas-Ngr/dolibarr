@@ -2713,3 +2713,4 @@ MCPTool=Outil MCP
 # Avertissement fonctionnalités IA expérimentales (osden)
 AiExperimentalSupportTitle=Fonctionnalité expérimentale
 AiExperimentalSupportWarning=Cette fonctionnalité est en version expérimentale et n'est pas prise en charge par le contrat de support OpenDSI. Tout incident déclaré sera décompté en heures de support.
+AiExperimentalSupportAck=J'ai bien compris

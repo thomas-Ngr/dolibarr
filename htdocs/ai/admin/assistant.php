@@ -219,6 +219,7 @@ print $form->textwithpicto($langs->trans('EnableAssistant'), $langs->trans('Disa
 //print '<td>';
 print ' &nbsp; ';
 print ajax_constantonoff('AI_ASSISTANT_ENABLED', aiExperimentalConfirmInput(), null, 0, 0, 1);
+print aiExperimentalConfirmScript();
 //print ' <span class="opacitymedium">' . $langs->trans('DisableMCPAI') . '</span>';
 //print '</td>';
 //print '</tr>';
