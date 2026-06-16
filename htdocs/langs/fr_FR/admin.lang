@@ -2779,3 +2779,7 @@ Tool=Outil
 ToolActionType=Type d'action de l'outil
 ToolDescription=Description de l'outil
 ViewOnly=Lecture seule
+ChatAssistant=Assistant Chat
+PresetsForChatAssistant=Préréglages de l'Assistant Chat
+ToolAccessControlHelp=Gérez les permissions des outils IA. Les outils système sont toujours activés et ne peuvent pas être désactivés.
+ToolAccessControl=Contrôle d'accès aux outils
