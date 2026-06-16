@@ -276,7 +276,11 @@ If user says 'order' without any qualifier, they mean a SALES ORDER - use this t
 				"inputSchema" => [
 					"type" => "object",
 					"properties" => [
-						"object_type" => ["type" => "string", "enum" => array_keys($this->map)],
+						// BACKPORT NOTE (osden 22.x): shipment/reception are intentionally excluded.
+						// Adding free lines to shipments/receptions needs Expedition/Reception::addlinefree(),
+						// which only exists from Dolibarr 24 (v22 addline() requires an origin order line).
+						// They stay in $this->map (still valid for get/delete) but are not line-addable here.
+						"object_type" => ["type" => "string", "enum" => ['invoice', 'order', 'proposal', 'supplier_invoice', 'supplier_order', 'supplier_proposal']],
 						"parent_id" => ["type" => "integer"],
 						"product_id" => ["type" => "integer", "default" => 0],
 						"description" => ["type" => "string"],
