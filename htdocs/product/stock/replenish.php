@@ -977,7 +977,7 @@ while ($i < ($limit ? min($num, $limit) : $num)) {
 			exit;
 		}
 
-		$prod->load_stock('warehouseopen, warehouseinternal'.(!$usevirtualstock ? ', novirtual' : ''), $draftchecked === 'checked' ? 1 : 0, null, $other_filters);
+		$prod->load_stock('warehouseopen, warehouseinternal'.(!$usevirtualstock ? ', novirtual' : ''), $draftchecked === 'checked' ? 1 : null, null, $other_filters);
 
 		// Multilangs
 		if (getDolGlobalInt('MAIN_MULTILANGS')) {
