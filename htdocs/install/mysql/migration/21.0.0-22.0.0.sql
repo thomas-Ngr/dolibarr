@@ -336,6 +336,7 @@ UPDATE llx_c_socialnetworks SET icon = 'fa-mastodon' WHERE icon = '' AND code = 
 ALTER TABLE llx_supplier_proposal ADD COLUMN deposit_percent varchar(63) DEFAULT NULL AFTER fk_cond_reglement;
 ALTER TABLE llx_commande_fournisseur ADD COLUMN deposit_percent varchar(63) DEFAULT NULL AFTER fk_cond_reglement;
 
+ALTER TABLE llx_adherent MODIFY COLUMN societe VARCHAR(128);
 
 -- ---------------
 -- AJOUTS OSDEN
