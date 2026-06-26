@@ -336,12 +336,14 @@ UPDATE llx_c_socialnetworks SET icon = 'fa-mastodon' WHERE icon = '' AND code = 
 ALTER TABLE llx_supplier_proposal ADD COLUMN deposit_percent varchar(63) DEFAULT NULL AFTER fk_cond_reglement;
 ALTER TABLE llx_commande_fournisseur ADD COLUMN deposit_percent varchar(63) DEFAULT NULL AFTER fk_cond_reglement;
 
+ALTER TABLE llx_adherent MODIFY COLUMN societe VARCHAR(128);
 
 -- ---------------
 -- AJOUTS OSDEN
 -- ---------------
 
 UPDATE llx_const SET name = 'MAIL_MASS_ACTION_SEARCH_MOST_RECENT_FILE_IF_NOT_FOUND' WHERE name = 'ESAYA_SEND_EMAIL_IN_MASS_MOST_RECENT_FILE_IF_NOT_FOUND';
+
 -- AI module: request/audit log table for the AI Assistant and MCP server (backported from Dolibarr 24)
 create table if not exists llx_ai_request_log
 (
