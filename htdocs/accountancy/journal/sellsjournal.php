@@ -99,6 +99,8 @@ $tabCustomerDiscountVAT = array();
 $tabCustomerDiscountTTC = array();
 
 $cptcli = 'NotDefined';
+$accountCustomerDeposit = getDolGlobalInt('ACCOUNTING_ACCOUNT_CUSTOMER_DEPOSIT', 'NotDefined');
+$accountCustomerDepositVAT = getDolGlobalString('ACCOUNTING_ACCOUNT_CUSTOMER_DEPOSIT_FOR_VAT', 'NotDefined');
 
 /*
  * Actions
@@ -205,6 +207,9 @@ if ($in_bookkeeping == 'notyet') {
 	$sql .= " AND f.rowid NOT IN (SELECT fk_doc FROM ".MAIN_DB_PREFIX."accounting_bookkeeping as ab WHERE ab.doc_type='customer_invoice')";
 	// $sql .= " AND fd.rowid NOT IN (SELECT fk_docdet FROM " . MAIN_DB_PREFIX . "accounting_bookkeeping as ab WHERE ab.doc_type='customer_invoice')";		// Useless, we save one line for all products with same account
 }
+if (!empty(length_accountg($accountCustomerDeposit)) && $accountCustomerDeposit != 'NotDefined') {
+	$sql .= " AND (fd.description != '(DEPOSIT)' OR COALESCE(fd.fk_remise_except, 0) = 0)";
+}
 $parameters = array();
 $reshook = $hookmanager->executeHooks('printFieldListWhere', $parameters); // Note that $action and $object may have been modified by hook
 $sql .= $hookmanager->resPrint;
@@ -226,13 +231,10 @@ $vatdata_cache = array();
 $tabCustomerDiscountHT = array();
 $tabCustomerDiscountVAT = array();
 $tabCustomerDiscountTTC = array();
-$customerDiscountProcessed = array();
 
 // Variables
 $cptcli = getDolGlobalString('ACCOUNTING_ACCOUNT_CUSTOMER', 'NotDefined');
 $cpttva = getDolGlobalString('ACCOUNTING_VAT_SOLD_ACCOUNT', 'NotDefined');
-$accountCustomerDeposit = getDolGlobalInt('ACCOUNTING_ACCOUNT_CUSTOMER_DEPOSIT', 'NotDefined');
-$accountCustomerDepositVAT = getDolGlobalString('ACCOUNTING_ACCOUNT_CUSTOMER_DEPOSIT_FOR_VAT', 'NotDefined');
 
 $result = $db->query($sql);
 if ($result) {
@@ -306,50 +308,38 @@ if ($result) {
 
 		$revenuestamp = (float) price2num($obj->revenuestamp, 'MT');
 
-		if (!empty(length_accountg($accountCustomerDepositVAT)) && $accountCustomerDepositVAT != 'NotDefined' && $obj->type == Facture::TYPE_STANDARD) {
-			$sqlConsumedList = array();
-			$invoiceId = (int) $obj->rowid;
-			$invoiceLineId = (int) $obj->fdid;
-			if ($invoiceId > 0 && !isset($customerDiscountProcessed['f' . $invoiceId])) {
-				$sqlConsumedList[] = "re.fk_facture = " . $invoiceId;
-				$customerDiscountProcessed['f' . $invoiceId] = true;
-			}
-			if ($invoiceLineId > 0 && !isset($customerDiscountProcessed['fd' . $invoiceLineId])) {
-				$sqlConsumedList[] = "re.fk_facture_line = " . $invoiceLineId;
-				$customerDiscountProcessed['fd' . $invoiceLineId] = true;
-			}
+		if (!empty(length_accountg($accountCustomerDeposit)) && $accountCustomerDeposit != 'NotDefined' && $obj->type == Facture::TYPE_STANDARD && !isset($tabfac[$obj->rowid])) {
+			// Get all linked invoice deposit consumed by this invoice
+			$sql2 = "SELECT re.rowid";
+			$sql2 .= " FROM " . $db->prefix() . "societe_remise_except as re";
+			$sql2 .= " WHERE (re.fk_facture = " . ((int) $obj->rowid);
+			$sql2 .= "  OR re.fk_facture_line IN (SELECT rowid FROM " . $db->prefix() . "facturedet WHERE fk_facture = " . ((int) $obj->rowid) . ")";
+			$sql2 .= ")";
 
-			if (!empty($sqlConsumedList)) {
-				// Get aal linked invoice deposit consumed by this invoice
-				$sql2 = "SELECT re.rowid";
-				$sql2 .= " FROM " . $db->prefix() . "societe_remise_except as re";
-				$sql2 .= " WHERE (" . implode(' OR ', $sqlConsumedList) . ")";
-
-				$resql2 = $db->query($sql2);
-				if ($resql2) {
-					if ($db->num_rows($resql2) > 0) {
-						if (!isset($tabCustomerDiscountHT[$obj->rowid][$accountCustomerDeposit])) {
-							$tabCustomerDiscountHT[$obj->rowid][$accountCustomerDeposit] = 0;
-						}
-						if (!isset($tabCustomerDiscountVAT[$obj->rowid][$compta_tva])) {
-							$tabCustomerDiscountVAT[$obj->rowid][$compta_tva] = 0;
-						}
-						if (!isset($tabCustomerDiscountTTC[$obj->rowid])) {
-							$tabCustomerDiscountTTC[$obj->rowid][$compta_tva] = 0;
-						}
-
-						while ($obj2 = $db->fetch_object($resql2)) {
-							$customerDiscount = new DiscountAbsolute($db);
-							$customerDiscount->fetch($obj2->rowid);
-							$tabCustomerDiscountHT[$obj->rowid][$accountCustomerDeposit] = -$customerDiscount->total_ht;
-							$tabCustomerDiscountVAT[$obj->rowid][$compta_tva] = -$customerDiscount->total_tva;
-							$tabCustomerDiscountTTC[$obj->rowid][$compta_soc] = -$customerDiscount->total_ttc;
-						}
+			$resql2 = $db->query($sql2);
+			if ($resql2) {
+				if ($db->num_rows($resql2) > 0) {
+					if (!isset($tabCustomerDiscountHT[$obj->rowid][$accountCustomerDeposit])) {
+						$tabCustomerDiscountHT[$obj->rowid][$accountCustomerDeposit] = 0;
 					}
-					$db->free($resql2);
-				} else {
-					dol_syslog(__FUNCTION__ . ' Error :' . $db->lasterror(), LOG_ERR);
+					if (!isset($tabCustomerDiscountVAT[$obj->rowid][$accountCustomerDepositVAT])) {
+						$tabCustomerDiscountVAT[$obj->rowid][$accountCustomerDepositVAT] = 0;
+					}
+					if (!isset($tabCustomerDiscountTTC[$obj->rowid][$compta_soc])) {
+						$tabCustomerDiscountTTC[$obj->rowid][$compta_soc] = 0;
+					}
+
+					while ($obj2 = $db->fetch_object($resql2)) {
+						$customerDiscount = new DiscountAbsolute($db);
+						$customerDiscount->fetch($obj2->rowid);
+						$tabCustomerDiscountHT[$obj->rowid][$accountCustomerDeposit] = -$customerDiscount->total_ht;
+						$tabCustomerDiscountVAT[$obj->rowid][$accountCustomerDepositVAT] = -$customerDiscount->total_tva;
+						$tabCustomerDiscountTTC[$obj->rowid][$compta_soc] = -$customerDiscount->total_ttc;
+					}
 				}
+				$db->free($resql2);
+			} else {
+				dol_syslog(__FUNCTION__ . ' Error :' . $db->lasterror(), LOG_ERR);
 			}
 		}
 
@@ -1573,10 +1563,11 @@ if (empty($action) || $action == 'view') {
 			$i++;
 		}
 
-		// NEW accountancy : customer deposit account transfer -- Begin
 		// customer discount consumed HT (like Product / Service section)
 		if (isset($tabCustomerDiscountHT[$key])) {
 			foreach ($tabCustomerDiscountHT[$key] as $k => $mt) {
+				$labelOperationExtended = ' (AC)'; // paid in deposit invoice and use customer discount
+
 				if (empty($conf->cache['accountingaccountincurrententity'][$k])) {
 					$accountingaccount = new AccountingAccount($db);
 					$accountingaccount->fetch(0, $k, true);
@@ -1610,7 +1601,7 @@ if (empty($action) || $action == 'view') {
 				print '</td>';
 				$companystatic->id = $tabcompany[$key]['id'];
 				$companystatic->name = $tabcompany[$key]['name'];
-				print "<td>" . $bookkeepingstatic->accountingLabelForOperation($companystatic->getNomUrl(0, 'customer'), $invoicestatic->ref, $accountingaccount->label, 1) . "</td>";
+				print "<td>" . $bookkeepingstatic->accountingLabelForOperation($companystatic->getNomUrl(0, 'customer'), $invoicestatic->ref, $accountingaccount->label, 1) . $labelOperationExtended . "</td>";
 				print '<td class="right nowraponall amount">'.($mt < 0 ? price(-$mt) : '')."</td>";
 				print '<td class="right nowraponall amount">'.($mt >= 0 ? price($mt) : '')."</td>";
 				print "</tr>";
@@ -1618,7 +1609,6 @@ if (empty($action) || $action == 'view') {
 				$i++;
 			}
 		}
-		// NEW accountancy : customer deposit account transfer -- End
 
 		// Product / Service
 		foreach ($tabht[$key] as $k => $mt) {
@@ -1663,7 +1653,6 @@ if (empty($action) || $action == 'view') {
 			$i++;
 		}
 
-		// NEW accountancy : customer deposit account transfer -- Begin
 		// customer discount consumed TTC amount (like Third-party section)
 		if (isset($tabCustomerDiscountTTC[$key])) {
 			foreach ($tabCustomerDiscountTTC[$key] as $k => $mt) {
@@ -1699,9 +1688,7 @@ if (empty($action) || $action == 'view') {
 				$i++;
 			}
 		}
-		// NEW accountancy : customer deposit account transfer -- End
 
-		// NEW accountancy : customer deposit account transfer -- Begin
 		// customer discount consumed VAT amount (like VAT section)
 		if (isset($tabCustomerDiscountVAT[$key])) {
 			foreach ($tabCustomerDiscountVAT[$key] as $k => $mt) {
@@ -1733,7 +1720,6 @@ if (empty($action) || $action == 'view') {
 				$i++;
 			}
 		}
-		// NEW accountancy : customer deposit account transfer -- End
 
 		// VAT
 		$listoftax = array(0, 1, 2);
