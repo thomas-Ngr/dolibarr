@@ -570,10 +570,10 @@ if ($action == 'writebookkeeping' && !$error && $user->hasRight('accounting', 'b
 		$companystatic->code_client = $tabcompany[$key]['code_client'];
 		$companystatic->client = 3;
 
-		$invoicestatic->id = $key;
+		$invoicestatic->id = (int) $key;
 		$invoicestatic->ref = (string) $val["ref"];
-		$invoicestatic->type = $val["type"];
-		$invoicestatic->close_code = $val["close_code"];
+		$invoicestatic->type = (int) ($val["type"] ?? 0);
+		$invoicestatic->close_code = (string) ($val["close_code"] ?? '');
 
 		$date = dol_print_date($val["date"], 'day');
 
@@ -597,7 +597,7 @@ if ($action == 'writebookkeeping' && !$error && $user->hasRight('accounting', 'b
 		if (isset($errorforinvoice[$key]) && $errorforinvoice[$key] == 'somelinesarenotbound') {
 			$error++;
 			$errorforline++;
-			setEventMessages($langs->trans('ErrorInvoiceContainsLinesNotYetBounded', $val['ref']), null, 'errors');
+			setEventMessages($langs->trans('ErrorInvoiceContainsLinesNotYetBounded', (string) ($val['ref'] ?? '')), null, 'errors');
 		}
 
 		// Warranty
@@ -610,7 +610,7 @@ if ($action == 'writebookkeeping' && !$error && $user->hasRight('accounting', 'b
 					$bookkeeping->doc_ref = $val["ref"];
 					$bookkeeping->date_creation = $now;
 					$bookkeeping->doc_type = 'customer_invoice';
-					$bookkeeping->fk_doc = $key;
+					$bookkeeping->fk_doc = (int) $key;
 					$bookkeeping->fk_docdet = 0; // Useless, can be several lines that are the source of this record to add
 					$bookkeeping->thirdparty_code = $companystatic->code_client;
 
@@ -660,7 +660,7 @@ if ($action == 'writebookkeeping' && !$error && $user->hasRight('accounting', 'b
 				$bookkeeping->doc_ref = $val["ref"];
 				$bookkeeping->date_creation = $now;
 				$bookkeeping->doc_type = 'customer_invoice';
-				$bookkeeping->fk_doc = $key;
+				$bookkeeping->fk_doc = (int) $key;
 				$bookkeeping->fk_docdet = 0; // Useless, can be several lines that are source of this record to add
 				$bookkeeping->thirdparty_code = $companystatic->code_client;
 
@@ -728,7 +728,7 @@ if ($action == 'writebookkeeping' && !$error && $user->hasRight('accounting', 'b
 					$bookkeeping->doc_ref = $val["ref"];
 					$bookkeeping->date_creation = $now;
 					$bookkeeping->doc_type = 'customer_invoice';
-					$bookkeeping->fk_doc = $key;
+					$bookkeeping->fk_doc = (int) $key;
 					$bookkeeping->fk_docdet = 0; // Useless, can be several lines that are source of this record to add
 					$bookkeeping->thirdparty_code = $companystatic->code_client;
 
@@ -809,7 +809,7 @@ if ($action == 'writebookkeeping' && !$error && $user->hasRight('accounting', 'b
 						$bookkeeping->doc_ref = $val["ref"];
 						$bookkeeping->date_creation = $now;
 						$bookkeeping->doc_type = 'customer_invoice';
-						$bookkeeping->fk_doc = $key;
+						$bookkeeping->fk_doc = (int) $key;
 						$bookkeeping->fk_docdet = 0; // Useless, can be several lines that are source of this record to add
 						$bookkeeping->thirdparty_code = $companystatic->code_client;
 
@@ -877,7 +877,7 @@ if ($action == 'writebookkeeping' && !$error && $user->hasRight('accounting', 'b
 						$bookkeeping->doc_ref = $val["ref"];
 						$bookkeeping->date_creation = $now;
 						$bookkeeping->doc_type = 'customer_invoice';
-						$bookkeeping->fk_doc = $key;
+						$bookkeeping->fk_doc = (int) $key;
 						$bookkeeping->fk_docdet = 0; // Useless, can be several lines that are source of this record to add
 						$bookkeeping->thirdparty_code = $companystatic->code_client;
 
@@ -1186,10 +1186,10 @@ if ($action == 'exportcsv' && !$error) {		// ISO and not UTF8 !
 		$companystatic->code_client = $tabcompany[$key]['code_client'];
 		$companystatic->client = 3;
 
-		$invoicestatic->id = $key;
+		$invoicestatic->id = (int) $key;
 		$invoicestatic->ref = (string) $val["ref"];
-		$invoicestatic->type = $val["type"];
-		$invoicestatic->close_code = $val["close_code"];
+		$invoicestatic->type = (int) ($val["type"] ?? 0);
+		$invoicestatic->close_code = (string) ($val["close_code"] ?? '');
 
 		$date = dol_print_date($val["date"], 'day');
 
@@ -1214,7 +1214,7 @@ if ($action == 'exportcsv' && !$error) {		// ISO and not UTF8 !
 				//if ($mt) {
 				print '"'.$key.'"'.$sep;
 				print '"'.$date.'"'.$sep;
-				print '"'.$val["ref"].'"'.$sep;
+				print '"'.((string) ($val["ref"] ?? '')).'"'.$sep;
 				print '"'.csvClean(dol_trunc($companystatic->name, 32)).'"'.$sep;
 				print '"'.length_accounta(html_entity_decode($k)).'"'.$sep;
 				print '"'.length_accountg(getDolGlobalString('ACCOUNTING_ACCOUNT_CUSTOMER_RETAINED_WARRANTY')).'"'.$sep;
@@ -1234,7 +1234,7 @@ if ($action == 'exportcsv' && !$error) {		// ISO and not UTF8 !
 			//if ($mt) {
 			print '"'.$key.'"'.$sep;
 			print '"'.$date.'"'.$sep;
-			print '"'.$val["ref"].'"'.$sep;
+			print '"'.((string) ($val["ref"] ?? '')).'"'.$sep;
 			print '"'.csvClean(dol_trunc($companystatic->name, 32)).'"'.$sep;
 			print '"'.length_accounta(html_entity_decode($k)).'"'.$sep;
 			print '"'.length_accountg($companystatic->accountancy_code_customer_general).'"'.$sep;
@@ -1255,7 +1255,7 @@ if ($action == 'exportcsv' && !$error) {		// ISO and not UTF8 !
 			//if ($mt) {
 			print '"'.$key.'"'.$sep;
 			print '"'.$date.'"'.$sep;
-			print '"'.$val["ref"].'"'.$sep;
+			print '"'.((string) ($val["ref"] ?? '')).'"'.$sep;
 			print '"'.csvClean(dol_trunc($companystatic->name, 32)).'"'.$sep;
 			print '"'.length_accountg(html_entity_decode($k)).'"'.$sep;
 			print '"'.length_accountg(html_entity_decode($k)).'"'.$sep;
@@ -1284,7 +1284,7 @@ if ($action == 'exportcsv' && !$error) {		// ISO and not UTF8 !
 				if ($mt) {
 					print '"'.$key.'"'.$sep;
 					print '"'.$date.'"'.$sep;
-					print '"'.$val["ref"].'"'.$sep;
+					print '"'.((string) ($val["ref"] ?? '')).'"'.$sep;
 					print '"'.csvClean(dol_trunc($companystatic->name, 32)).'"'.$sep;
 					print '"'.length_accountg(html_entity_decode($k)).'"'.$sep;
 					print '"'.length_accountg(html_entity_decode($k)).'"'.$sep;
@@ -1305,7 +1305,7 @@ if ($action == 'exportcsv' && !$error) {		// ISO and not UTF8 !
 				//if ($mt) {
 				print '"'.$key.'"'.$sep;
 				print '"'.$date.'"'.$sep;
-				print '"'.$val["ref"].'"'.$sep;
+				print '"'.((string) ($val["ref"] ?? '')).'"'.$sep;
 				print '"'.csvClean(dol_trunc($companystatic->name, 32)).'"'.$sep;
 				print '"'.length_accountg(html_entity_decode($k)).'"'.$sep;
 				print '"'.length_accountg(html_entity_decode($k)).'"'.$sep;
@@ -1327,7 +1327,7 @@ if ($action == 'exportcsv' && !$error) {		// ISO and not UTF8 !
 					//if ($mt) {
 					print '"' . $key . '"' . $sep;
 					print '"' . $date . '"' . $sep;
-					print '"' . $val["ref"] . '"' . $sep;
+					print '"' . ((string) ($val["ref"] ?? '')) . '"' . $sep;
 					print '"' . csvClean(dol_trunc($companystatic->name, 32)) . '"' . $sep;
 					print '"' . length_accounta(html_entity_decode($k)) . '"' . $sep;
 					print '"' . length_accountg($companystatic->accountancy_code_customer_general) . '"' . $sep;
@@ -1350,7 +1350,7 @@ if ($action == 'exportcsv' && !$error) {		// ISO and not UTF8 !
 					//if ($mt) {
 					print '"' . $key . '"' . $sep;
 					print '"' . $date . '"' . $sep;
-					print '"' . $val["ref"] . '"' . $sep;
+					print '"' . ((string) ($val["ref"] ?? '')) . '"' . $sep;
 					print '"' . csvClean(dol_trunc($companystatic->name, 32)) . '"' . $sep;
 					print '"' . length_accountg(html_entity_decode($k)) . '"' . $sep;
 					print '"' . length_accountg(html_entity_decode($k)) . '"' . $sep;
@@ -1371,7 +1371,7 @@ if ($action == 'exportcsv' && !$error) {		// ISO and not UTF8 !
 					if ($mt) {
 						print '"' . $key . '"' . $sep;
 						print '"' . $date . '"' . $sep;
-						print '"' . $val["ref"] . '"' . $sep;
+						print '"' . ((string) ($val["ref"] ?? '')) . '"' . $sep;
 						print '"' . csvClean(dol_trunc($companystatic->name, 32)) . '"' . $sep;
 						print '"' . length_accountg(html_entity_decode($k)) . '"' . $sep;
 						print '"' . length_accountg(html_entity_decode($k)) . '"' . $sep;
@@ -1507,10 +1507,10 @@ if (empty($action) || $action == 'view') {
 		$companystatic->code_client = $tabcompany[$key]['code_client'];
 		$companystatic->client = 3;
 
-		$invoicestatic->id = $key;
+		$invoicestatic->id = (int) $key;
 		$invoicestatic->ref = (string) $val["ref"];
-		$invoicestatic->type = $val["type"];
-		$invoicestatic->close_code = $val["close_code"];
+		$invoicestatic->type = (int) ($val["type"] ?? 0);
+		$invoicestatic->close_code = (string) ($val["close_code"] ?? '');
 
 		$date = dol_print_date($val["date"], 'day');
 
@@ -1553,7 +1553,7 @@ if (empty($action) || $action == 'view') {
 			print "<td>".$invoicestatic->getNomUrl(1)."</td>";
 			// Account
 			print "<td>";
-			print '<span class="error">'.$langs->trans('ErrorInvoiceContainsLinesNotYetBoundedShort', $val['ref']).'</span>';
+			print '<span class="error">'.$langs->trans('ErrorInvoiceContainsLinesNotYetBoundedShort', $invoicestatic->ref).'</span>';
 			print '</td>';
 			// Subledger account
 			print "<td>";
