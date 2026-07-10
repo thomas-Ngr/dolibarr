@@ -699,7 +699,7 @@ class doc_generic_project_odt extends ModelePDFProjects
 					$foundtagfortasks = 0;
 					dol_syslog($e->getMessage(), LOG_INFO);
 				}
-				if ($foundtagfortasks) {
+				if ($foundtagfortasks && isset($listlines)) {
 					$taskstatic = new Task($this->db);
 
 					// Security check
@@ -743,7 +743,7 @@ class doc_generic_project_odt extends ModelePDFProjects
 								$foundtagfortasksressources = 0;
 								dol_syslog($e->getMessage(), LOG_INFO);
 							}
-							if ($foundtagfortasksressources) {
+							if ($foundtagfortasksressources && isset($listlinestaskres)) {
 								foreach ($contact_arrray as $contact) {
 									if ($contact['source'] == 'internal') {
 										$objectdetail = new User($this->db);
@@ -800,7 +800,7 @@ class doc_generic_project_odt extends ModelePDFProjects
 								$foundtagfortaskstimes = 0;
 								dol_syslog($e->getMessage(), LOG_INFO);
 							}
-							if ($foundtagfortaskstimes) {
+							if ($foundtagfortaskstimes && isset($listlinestasktime)) {
 								if (empty($num)) {
 									$row['rowid'] = 0;
 									$row['task_date'] = 0;
@@ -870,7 +870,7 @@ class doc_generic_project_odt extends ModelePDFProjects
 							$foundtagfortasksfiles = 0;
 							dol_syslog($e->getMessage(), LOG_INFO);
 						}
-						if ($foundtagfortasksfiles) {
+						if ($foundtagfortasksfiles && isset($listtasksfiles)) {
 							$upload_dir = $conf->project->dir_output.'/'.dol_sanitizeFileName($object->ref).'/'.dol_sanitizeFileName($task->ref);
 							$filearray = dol_dir_list($upload_dir, "files", 0, '', '(\.meta|_preview.*\.png)$', 'name', SORT_ASC, 1);
 
@@ -908,7 +908,7 @@ class doc_generic_project_odt extends ModelePDFProjects
 					$foundtagforprojectfiles = 0;
 					dol_syslog($e->getMessage(), LOG_INFO);
 				}
-				if ($foundtagforprojectfiles) {
+				if ($foundtagforprojectfiles && isset($listlines)) {
 					$upload_dir = $conf->project->dir_output.'/'.dol_sanitizeFileName($object->ref);
 					$filearray = dol_dir_list($upload_dir, "files", 0, '', '(\.meta|_preview.*\.png)$', 'name', SORT_ASC, 1);
 
@@ -952,7 +952,7 @@ class doc_generic_project_odt extends ModelePDFProjects
 						$foundtagforprojectcontacts = 0;
 						dol_syslog($e->getMessage(), LOG_INFO);
 					}
-					if ($foundtagforprojectcontacts) {
+					if ($foundtagforprojectcontacts && isset($listlines)) {
 						foreach ($contact_arrray as $contact) {
 							if ($contact['source'] == 'internal') {
 								$objectdetail = new User($this->db);
@@ -1101,9 +1101,15 @@ class doc_generic_project_odt extends ModelePDFProjects
 				);
 
 				// Insert list of objects into the project
+				$foundtagforprojectrefs = 1;
 				try {
 					$listlines = $odfHandler->setSegment('projectrefs');
-
+				} catch (OdfExceptionSegmentNotFound $e) {
+					// We may arrive here if tags for projectrefs not present into template
+					$foundtagforprojectrefs = 0;
+					dol_syslog($e->getMessage(), LOG_INFO);
+				}
+				if ($foundtagforprojectrefs && isset($listlines)) {
 					foreach ($listofreferent as $keyref => $valueref) {
 						$title = $valueref['title'];
 						$tablename = $valueref['table'];
@@ -1172,14 +1178,14 @@ class doc_generic_project_odt extends ModelePDFProjects
 								}
 							}
 						}
-						$odfHandler->mergeSegment($listlines);
+						try {
+							$odfHandler->mergeSegment($listlines);
+						} catch (OdfException $e) {
+							$this->error = $e->getMessage();
+							dol_syslog($this->error, LOG_WARNING);
+							return -1;
+						}
 					}
-				} catch (OdfExceptionSegmentNotFound $e) {
-					// Do nothing
-				} catch (OdfException $e) {
-					$this->error = $e->getMessage();
-					dol_syslog($this->error, LOG_WARNING);
-					return -1;
 				}
 
 				// Replace labels translated
