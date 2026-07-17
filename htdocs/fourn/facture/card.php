@@ -752,7 +752,6 @@ if (empty($reshook)) {
 					$discount->multicurrency_amount_ht = abs((float) $discount->multicurrency_total_ht);
 					$discount->multicurrency_amount_tva = abs((float) $discount->multicurrency_total_tva);
 					$discount->multicurrency_amount_ttc = abs((float) $discount->multicurrency_total_ttc);
-
 					// Clean vat code
 					$reg = array();
 					$vat_src_code = '';
@@ -1599,6 +1598,13 @@ if (empty($reshook)) {
 			if ($line->product_type == 1) { // only service line
 				$result = $object->updateline($line->id, $line->desc, $line->subprice, $line->tva_tx, $line->localtax1_tx, $line->localtax2_tx, $line->qty, $line->fk_product, 'HT', $line->info_bits, $line->product_type, $line->remise_percent, 0, $alldate_start, $alldate_end, $line->array_options, $line->fk_unit, $line->multicurrency_subprice, $line->ref_supplier, $line->rang);
 			}
+		}
+	} elseif ($action == 'addline' && GETPOST('submitforalllines', 'alpha') && GETPOST('remiseforalllines', 'alpha') !== '' && $usercancreate) {
+		// Define vat_rate
+		$remise_percent = (GETPOST('remiseforalllines') ? GETPOST('remiseforalllines') : 0);
+		$remise_percent = str_replace('*', '', $remise_percent);
+		foreach ($object->lines as $line) {
+			$result = $object->updateline($line->id, $line->desc, $line->subprice, $line->tva_tx, $line->localtax1_tx, $line->localtax2_tx, $line->qty, $line->fk_product, 'HT', $line->info_bits, $line->product_type, $remise_percent, 0, $line->date_start, $line->date_end, $line->array_options, $line->fk_unit, $line->multicurrency_subprice, $line->ref_supplier, $line->rang);
 		}
 	} elseif ($action == 'addline' && GETPOST('submitforalllines', 'aZ09') && GETPOST('vatforalllines', 'alpha') != '' && $usercancreate) {
 		// Define vat_rate
@@ -2512,7 +2518,7 @@ if ($action == 'create') {
 		print $desc;
 		print '</div></div>';
 
-		if (empty($origin) || ($origin == 'order_supplier' && !empty($originid))) {
+		if (empty($origin) || (($origin == 'supplier_proposal' || $origin == 'order_supplier' || $origin == 'reception') && !empty($originid))) {
 			// Deposit - Down payment
 			if (!getDolGlobalString('INVOICE_DISABLE_DEPOSIT')) {
 				print '<div class="tagtr listofinvoicetype"><div class="tagtd listofinvoicetype">';
@@ -2553,17 +2559,40 @@ if ($action == 'create') {
 				print '<td>';
 				print $desc;
 				print '</td>';
-				if ($origin == 'order_supplier') {
+				if ($origin == 'supplier_proposal' || $origin == 'order_supplier' || $origin == 'reception') {
 					print '<td class="nowrap" style="padding-left: 15px">';
 					$arraylist = array(
 						'amount' => $langs->transnoentitiesnoconv('FixAmount', $langs->transnoentitiesnoconv('Deposit')),
 						'variable' => $langs->transnoentitiesnoconv('VarAmountOneLine', $langs->transnoentitiesnoconv('Deposit')),
 						'variablealllines' => $langs->transnoentitiesnoconv('VarAmountAllLines')
 					);
-					print $form->selectarray('typedeposit', $arraylist, GETPOST('typedeposit', 'aZ09'), 0, 0, 0, '', 1);
+					$typedeposit = GETPOST('typedeposit', 'aZ09');
+					$valuedeposit = GETPOST('valuedeposit', 'int');
+					$deposit_percent = null;
+					if ($origin == 'reception') {
+						// try to get from source of reception (supplier order)
+						if (!isset($objectsrc->supplier_order)) {
+							$objectsrc->fetch_origin();
+						}
+						if (!empty($objectsrc->commandeFournisseur)) {
+							$deposit_percent = $objectsrc->commandeFournisseur->deposit_percent;
+						}
+					} elseif (!empty($objectsrc->deposit_percent)) {
+						$deposit_percent = $objectsrc->deposit_percent;
+					}
+					if (empty($typedeposit) && !empty($deposit_percent)) {
+						$origin_payment_conditions_deposit_percent = getDictionaryValue('c_payment_term', 'deposit_percent', $objectsrc->cond_reglement_id);
+						if (!empty($origin_payment_conditions_deposit_percent)) {
+							$typedeposit = 'variable';
+						}
+					}
+					if (empty($valuedeposit) && $typedeposit == 'variable' && !empty($deposit_percent)) {
+						$valuedeposit = $deposit_percent;
+					}
+					print $form->selectarray('typedeposit', $arraylist, $typedeposit, 0, 0, 0, '', 1);
 					print '</td>';
 					print '<td class="nowrap" style="padding-left: 5px">';
-					print '<span class="opacitymedium paddingleft">'.$langs->trans("AmountOrPercent").'</span><input type="text" id="valuedeposit" name="valuedeposit" class="width75 right" value="' . GETPOSTINT('valuedeposit') . '"/>';
+					print '<span class="opacitymedium paddingleft">'.$langs->trans("AmountOrPercent").'</span><input type="text" id="valuedeposit" name="valuedeposit" class="width75 right" value="' . $valuedeposit . '"/>';
 					print '</td>';
 				}
 				print '</tr></table>';

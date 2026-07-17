@@ -1058,17 +1058,20 @@ class BonPrelevement extends CommonObject
 	 *  @param  int  	$executiondate		Date to execute the transfer
 	 *  @param	int	    $notrigger			Disable triggers
 	 *  @param	string	$type				'direct-debit' or 'bank-transfer'
-	 *  @param	int		$did				ID of an existing payment request. If $did is defined, we use the existing payment request.
+	 *  @param  array<int>|int  $dids   ID(s) of existing payment request(s).
+	 *                                  - If $dids is 0, we use all existing requests.
+	 *                                  - If $dids is an int > 0, we use the existing payment request.
+	 *                                  - If $dids is an array, the created BonsPrelevement will include these payment requests.
 	 *  @param	int		$fk_bank_account	Bank account ID the receipt is generated for. Will use the ID into the setup of module Direct Debit or Credit Transfer if 0.
 	 *  @param	string	$sourcetype			'invoice' or 'salary'
 	 *	@return	int							Return integer <0 if KO, No of invoice included into file if OK
 	 */
-	public function create($banque = '', $agence = '', $mode = 'real', $format = 'ALL', $executiondate = 0, $notrigger = 0, $type = 'direct-debit', $did = 0, $fk_bank_account = 0, $sourcetype = 'invoice')
+	public function create($banque = '', $agence = '', $mode = 'real', $format = 'ALL', $executiondate = 0, $notrigger = 0, $type = 'direct-debit', $dids = 0, $fk_bank_account = 0, $sourcetype = 'invoice')
 	{
 		// phpcs:enable
 		global $conf, $langs, $user;
 
-		dol_syslog(__METHOD__ . " Bank=".$banque." Office=".$agence." mode=".$mode." format=".$format." type=".$type." did=".$did." fk_bank_account=".$fk_bank_account." sourcetype=".$sourcetype, LOG_DEBUG);
+		dol_syslog(__METHOD__ . " Bank=".$banque." Office=".$agence." mode=".$mode." format=".$format." type=".$type." dids=".(is_array($dids) ? implode(',', $dids) : $dids)." fk_bank_account=".$fk_bank_account." sourcetype=".$sourcetype, LOG_DEBUG);
 
 		require_once DOL_DOCUMENT_ROOT . "/compta/facture/class/facture.class.php";
 		require_once DOL_DOCUMENT_ROOT . "/societe/class/societe.class.php";
@@ -1081,10 +1084,19 @@ class BonPrelevement extends CommonObject
 			}
 		}
 
+		if (!is_int($dids) && !is_array($dids)) {
+			$this->error = 'ErrorBadParametersForDirectDebitFileCreateDids';
+			return -1;
+		}
+
 		// Clean params
 		if (empty($fk_bank_account)) {
 			$fk_bank_account = ($type == 'bank-transfer' ? getDolGlobalInt('PAYMENTBYBANKTRANSFER_ID_BANKACCOUNT') : getDolGlobalInt('PRELEVEMENT_ID_BANKACCOUNT'));
 		}
+		if (is_int($dids)) {
+			$dids = array($dids);
+		}
+
 
 		$error = 0;
 		// Pre-store some values into variables to simplify following sql requests
@@ -1100,13 +1112,13 @@ class BonPrelevement extends CommonObject
 			$societeOrUser = 'user';
 		}
 
-		$thirdpartyBANId = 0;
+		$thirdpartyBANIds = [];
 
 		// Check if there is an iban associated to the bank transfer request or if we take the default
-		if ($did > 0) {
+		if ($dids !== [0] && !empty($dids)) {
 			$sql = "SELECT pd.fk_societe_rib";
 			$sql .= " FROM " . $this->db->prefix() . "prelevement_demande as pd";
-			$sql .= " WHERE pd.rowid = ".((int) $did);
+			$sql .= " WHERE pd.rowid IN (".$this->db->sanitize(implode(',', $dids)).")";
 
 			$resql = $this->db->query($sql);
 
@@ -1116,12 +1128,12 @@ class BonPrelevement extends CommonObject
 				return -1;
 			}
 
-			$obj = $this->db->fetch_object($resql);
-			if ($obj) {
-				$thirdpartyBANId = $obj->fk_societe_rib;
+			while ($obj = $this->db->fetch_object($resql)) {
+				$thirdpartyBANIds[] = (int) $obj->fk_societe_rib;
 
-				dol_syslog(__METHOD__ . " Found an BAN ID to use: ".$thirdpartyBANId);
+				dol_syslog(__METHOD__ . " Found BAN ID to use: ".$obj->fk_societe_rib);
 			}
+			$thirdpartyBANIds = array_unique($thirdpartyBANIds);
 
 			$this->db->free($resql);
 		}
@@ -1146,7 +1158,7 @@ class BonPrelevement extends CommonObject
 		$factures_errors = array();
 
 		if (!$error) {
-			dol_syslog(__METHOD__ . " Read invoices for did=" . ((int) $did), LOG_DEBUG);
+			dol_syslog(__METHOD__ . " Read invoices for dids=" . implode(', ', $dids), LOG_DEBUG);
 
 			$sql = "SELECT f.rowid, pd.rowid as pfdrowid";
 			$sql .= ", f.".$this->db->sanitize($socOrUser);		// fk_soc or fk_user
@@ -1162,15 +1174,16 @@ class BonPrelevement extends CommonObject
 			$sql .= " FROM " . $this->db->prefix() . $sqlTable . " as f";	// f is salary, facture or facture_fourn
 			$sql .= " LEFT JOIN " . $this->db->prefix() . "prelevement_demande as pd ON f.rowid = pd.fk_".$this->db->sanitize($sqlTable);
 			$sql .= " LEFT JOIN " . $this->db->prefix() . $this->db->sanitize($societeOrUser)." as s ON s.rowid = f.".$this->db->sanitize($socOrUser);
-			$sql .= " LEFT JOIN " . $this->db->prefix() . $this->db->sanitize($societeOrUser."_rib")." as sr ON s.rowid = sr.".$this->db->sanitize($socOrUser);
 			if ($sourcetype != 'salary') {
-				if (!empty($thirdpartyBANId)) {
-					$sql .= " AND sr.rowid = " . ((int) $thirdpartyBANId);
-				} else {
-					$sql .= " AND sr.default_rib = 1";
-				}
-				// TODO Add 'AND sr.default_rib = 1' in sourcetype salary too Note: the column has been created in v21 in llx_user_rib and default to 0
-				// If we add a test on sr.default_rib = 1, we must also check we have a correct error management to stop if no default BAN is found.
+				// Use the RIB from the payment request; fall back to the thirdparty default RIB when none is specified
+				$sql .= " LEFT JOIN " . $this->db->prefix() . "societe_rib as sr";
+				$sql .= " ON (";
+				$sql .= "   (sr.rowid IS NOT NULL AND sr.rowid = pd.fk_societe_rib)";
+				$sql .= "   OR (pd.fk_societe_rib IS NULL AND sr.fk_soc = f.".$this->db->sanitize($socOrUser)." AND sr.default_rib = 1)";
+				$sql .= " )";
+			} else {
+				$sql .= " LEFT JOIN " . $this->db->prefix() . "user_rib as sr";
+				$sql .= " ON s.rowid = sr.fk_user AND sr.default_rib = 1";
 			}
 			$sql .= " WHERE f.entity IN (".$this->db->escape($entities).')';
 			if ($sourcetype != 'salary') {
@@ -1187,8 +1200,8 @@ class BonPrelevement extends CommonObject
 			if ($sourcetype != 'salary') {
 				$sql .= " AND sr.type = 'ban'";		// TODO Add AND sr.type = 'ban' for users too
 			}
-			if ($did > 0) {
-				$sql .= " AND pd.rowid = " . ((int) $did);
+			if ($dids !== [0] && !empty($dids)) {
+				$sql .= " AND pd.rowid IN (".$this->db->sanitize(implode(',', $dids)).")";
 			}
 
 			$resql = $this->db->query($sql);
@@ -1357,7 +1370,7 @@ class BonPrelevement extends CommonObject
 					$row = $this->db->fetch_row($resql);
 
 					// Build the new ref
-					$ref = "T" . $ref . sprintf("%02d", (intval($row[0]) + 1));
+					$ref = "T" . $ref . sprintf("%02d", (intval($row[0] ?? 0) + 1));
 
 					// $conf->abc->dir_output may be:
 					// /home/ldestailleur/git/dolibarr_15.0/documents/abc/
@@ -1486,7 +1499,7 @@ class BonPrelevement extends CommonObject
 					if ($sourcetype == 'salary') {
 						$userid = $this->context['factures_prev'][0][2];
 					}
-					$result = $this->generate($format, $executiondate, $type, $fk_bank_account, $userid, $thirdpartyBANId);
+					$result = $this->generate($format, $executiondate, $type, $fk_bank_account, $userid, $thirdpartyBANIds);
 					if ($result < 0) {
 						//var_dump($this->error);
 						//var_dump($this->invoice_in_error);
@@ -1796,10 +1809,10 @@ class BonPrelevement extends CommonObject
 	 * @param	string	$type				'direct-debit' or 'bank-transfer'
 	 * @param   int     $fk_bank_account	Bank account ID the receipt is generated for. Will use the ID into the setup of module Direct Debit or Credit Transfer if 0.
 	 * @param   int  	$forsalary          If the SEPA is to pay salaries
-	 * @param   int  	$thirdpartyBANId	If defined, will use this ID to get the RIB. Otherwise, the first default BAN will be taken.
+	 * @param   int[]  	$thirdpartyBANIds	If defined, will use this IDs to get the RIB. Otherwise, the first default BAN will be taken.
 	 * @return	int							>=0 if OK, <0 if KO
 	 */
-	public function generate(string $format = 'ALL', int $executiondate = 0, string $type = 'direct-debit', int $fk_bank_account = 0, int $forsalary = 0, int $thirdpartyBANId = 0)
+	public function generate(string $format = 'ALL', int $executiondate = 0, string $type = 'direct-debit', int $fk_bank_account = 0, int $forsalary = 0, Array $thirdpartyBANIds = [])
 	{
 		global $conf, $langs, $mysoc;
 
@@ -1861,20 +1874,21 @@ class BonPrelevement extends CommonObject
 				$sql .= " " . MAIN_DB_PREFIX . "prelevement_lignes as pl,";
 				$sql .= " " . MAIN_DB_PREFIX . "facture as f,";
 				$sql .= " " . MAIN_DB_PREFIX . "prelevement as p,";
+				$sql .= " " . MAIN_DB_PREFIX . "prelevement_demande as pd,";
 				$sql .= " " . MAIN_DB_PREFIX . "societe as soc,";
 				$sql .= " " . MAIN_DB_PREFIX . "c_country as c,";
 				$sql .= " " . MAIN_DB_PREFIX . "societe_rib as rib";
 				$sql .= " WHERE pl.fk_prelevement_bons = " . ((int) $this->id);
 				$sql .= " AND pl.rowid = p.fk_prelevement_lignes";
 				$sql .= " AND p.fk_facture = f.rowid";
+				$sql .= " AND pd.fk_prelevement_bons = " . ((int) $this->id);
+				$sql .= " AND pd.fk_facture = f.rowid";
 				$sql .= " AND f.fk_soc = soc.rowid";
 				$sql .= " AND soc.fk_pays = c.rowid";
-				$sql .= " AND rib.fk_soc = f.fk_soc";
-				if (!empty($thirdpartyBANId)) {
-					$sql .= " AND rib.rowid = " . ((int) $thirdpartyBANId);
-				} else {
-					$sql .= " AND rib.default_rib = 1";
-				}
+				$sql .= " AND (";
+				$sql .= "   (rib.rowid IS NOT NULL AND rib.rowid = pd.fk_societe_rib)";
+				$sql .= "   OR (pd.fk_societe_rib IS NULL AND rib.fk_soc = f.fk_soc AND rib.default_rib = 1)";
+				$sql .= " )";
 				$sql .= " AND rib.type = 'ban'";
 
 				// Define $fileDebiteurSection. One section DrctDbtTxInf per invoice.
@@ -1888,17 +1902,49 @@ class BonPrelevement extends CommonObject
 						$obj = $this->db->fetch_object($resql);
 
 						if (!empty($cachearraytotestduplicate[$obj->idfac])) {
-							$this->error = $langs->trans('ErrorCompanyHasDuplicateDefaultBAN', $obj->socid);
+							$soc = new Societe($this->db);
+							$soc->fetch($obj->socid);
+							$msg = (empty($thirdpartyBANIds)) ? 'ErrorCompanyHasDuplicateDefaultBAN' : 'ErrorCompanyHasDuplicateInvoicesBAN';
+							$this->error = $langs->trans($msg, $soc->getNomUrl());
 							$this->invoice_in_error[$obj->idfac] = $this->error;
 							$result = -2;
 							break;
 						}
 						$cachearraytotestduplicate[$obj->idfac] = $obj->rowid;
 
+						// Get the default value
 						$daterum = (!empty($obj->date_rum)) ? $this->db->jdate($obj->date_rum) : $this->db->jdate($obj->datec);
 						$iban = dolDecrypt($obj->iban);
+						$bic = $obj->bic;
+						$drum = $obj->drum;
+						$rum = $obj->rum;
 
-						$fileDebiteurSection .= $this->EnregDestinataireSEPA($obj->code, $obj->nom, $obj->address, $obj->zip, $obj->town, $obj->country_code, $obj->cb, $obj->cg, $obj->cc, $obj->somme, $obj->reffac, $obj->idfac, $iban, $obj->bic, $daterum, $obj->drum, $obj->rum, $type);
+						// But if a force bank account is defined, we use it instead
+						if (!empty($obj->fk_prelevement_demande)) {
+							$companybankaccountid = 0;
+
+							$sqltmp = "SELECT fk_societe_rib FROM ".MAIN_DB_PREFIX."prelevement_demande";
+							$sqltmp .= " WHERE rowid = ".((int) $obj->fk_prelevement_demande);
+
+							$resqltmp = $this->db->query($sqltmp);
+
+							$objtmp = $this->db->fetch_object($resqltmp);
+							if ($objtmp) {
+								$companybankaccountid = (int) $objtmp->fk_societe_rib;
+							}
+
+							$bankaccount = new CompanyBankAccount($this->db);
+							$bankaccount->fetch($companybankaccountid);
+							if ($bankaccount->id > 0) {
+								$daterum = $bankaccount->date_rum;
+								$iban = $bankaccount->iban;
+								$bic = $bankaccount->bic;
+								$drum = $bankaccount->id;
+								$rum = $bankaccount->rum;
+							}
+						}
+
+						$fileDebiteurSection .= $this->EnregDestinataireSEPA($obj->code, $obj->nom, $obj->address, $obj->zip, $obj->town, $obj->country_code, '', '', '', $obj->somme, $obj->reffac, $obj->idfac, $iban, $bic, $daterum, (string) $drum, $rum, $type);
 
 						$this->total += $obj->somme;
 						$i++;
@@ -2006,19 +2052,20 @@ class BonPrelevement extends CommonObject
 					$sql .= " " . MAIN_DB_PREFIX . "prelevement_lignes as pl,";
 					$sql .= " " . MAIN_DB_PREFIX . "facture_fourn as f,";
 					$sql .= " " . MAIN_DB_PREFIX . "prelevement as p,";
+					$sql .= " " . MAIN_DB_PREFIX . "prelevement_demande as pd,";
 					$sql .= " " . MAIN_DB_PREFIX . "societe as soc";
 					$sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_country as c ON soc.fk_pays = c.rowid,";
 					$sql .= " " . MAIN_DB_PREFIX . "societe_rib as rib";
 					$sql .= " WHERE pl.fk_prelevement_bons = " . ((int) $this->id);
 					$sql .= " AND pl.rowid = p.fk_prelevement_lignes";
 					$sql .= " AND p.fk_facture_fourn = f.rowid";
+					$sql .= " AND pd.fk_prelevement_bons = " . ((int) $this->id);
+					$sql .= " AND pd.fk_facture_fourn = f.rowid";
 					$sql .= " AND f.fk_soc = soc.rowid";
-					$sql .= " AND rib.fk_soc = f.fk_soc";
-					if (!empty($thirdpartyBANId)) {
-						$sql .= " AND rib.rowid = " . ((int) $thirdpartyBANId);
-					} else {
-						$sql .= " AND rib.default_rib = 1";
-					}
+					$sql .= " AND (";
+					$sql .= "   (rib.rowid IS NOT NULL AND rib.rowid = pd.fk_societe_rib)";
+					$sql .= "   OR (pd.fk_societe_rib IS NULL AND rib.fk_soc = f.fk_soc AND rib.default_rib = 1)";
+					$sql .= " )";
 					$sql .= " AND rib.type = 'ban'";
 				}
 				// Define $fileCrediteurSection. One section DrctDbtTxInf per invoice.
@@ -2296,7 +2343,7 @@ class BonPrelevement extends CommonObject
 	public function EnregDestinataireSEPA($row_code_client, $row_nom, $row_address, $row_zip, $row_town, $row_country_code, $row_cb, $row_cg, $row_cc, $row_somme, $row_ref, $row_idfac, $row_iban, $row_bic, $row_datec, $row_drum, $row_rum, $type = 'direct-debit', $row_comment = '')
 	{
 		// phpcs:enable
-		global $conf, $mysoc;
+		global $conf, $mysoc, $hookmanager;
 
 		if (getDolGlobalString('SEPA_FORCE_TWO_DECIMAL')) {
 			$row_somme = number_format((float) price2num($row_somme, 'MT'), 2, ".", "");
@@ -2316,140 +2363,163 @@ class BonPrelevement extends CommonObject
 		// Define date of RUM signature
 		$DtOfSgntr = dol_print_date($row_datec, '%Y-%m-%d');
 
-		if ($type != 'bank-transfer') {
-			// SEPA Paiement Information of buyer for Direct Debit
-			$XML_DEBITOR = '';
-			$XML_DEBITOR .= '			<DrctDbtTxInf>' . $CrLf;
-			$XML_DEBITOR .= '				<PmtId>' . $CrLf;
-			// Add EndToEndId. Must be a unique ID for each payment (for example by including bank, buyer or seller, date, checksum)
-			$XML_DEBITOR .= '					<EndToEndId>' . ((getDolGlobalString('PRELEVEMENT_END_TO_END') != "") ? $conf->global->PRELEVEMENT_END_TO_END : ('DD-' . dol_trunc($row_idfac . '-' . $row_ref, 20, 'right', 'UTF-8', 1)) . '-' . $Rowing) . '</EndToEndId>' . $CrLf; // ISO20022 states that EndToEndId has a MaxLength of 35 characters
-			$XML_DEBITOR .= '				</PmtId>' . $CrLf;
-			$XML_DEBITOR .= '				<InstdAmt Ccy="EUR">' . $row_somme . '</InstdAmt>' . $CrLf;
-			$XML_DEBITOR .= '				<DrctDbtTx>' . $CrLf;
-			$XML_DEBITOR .= '					<MndtRltdInf>' . $CrLf;
-			$XML_DEBITOR .= '						<MndtId>' . $Rum . '</MndtId>' . $CrLf;
-			$XML_DEBITOR .= '						<DtOfSgntr>' . $DtOfSgntr . '</DtOfSgntr>' . $CrLf;
-			$XML_DEBITOR .= '						<AmdmntInd>false</AmdmntInd>' . $CrLf;
-			$XML_DEBITOR .= '					</MndtRltdInf>' . $CrLf;
-			$XML_DEBITOR .= '				</DrctDbtTx>' . $CrLf;
-			$XML_DEBITOR .= '				<DbtrAgt>' . $CrLf;
-			$XML_DEBITOR .= '					<FinInstnId>' . $CrLf;
-			if (getDolGlobalInt('WITHDRAWAL_WITHOUT_BIC') == 0) {
-				$XML_DEBITOR .= '						<BIC>' . $row_bic . '</BIC>' . $CrLf;
-			}
-			$XML_DEBITOR .= '					</FinInstnId>' . $CrLf;
-			$XML_DEBITOR .= '				</DbtrAgt>' . $CrLf;
-			$XML_DEBITOR .= '				<Dbtr>' . $CrLf;
-			$XML_DEBITOR .= '					<Nm>' . dolEscapeXML(strtoupper(dol_string_nospecial(dol_string_unaccent($row_nom), ' '))) . '</Nm>' . $CrLf;
-			$XML_DEBITOR .= '					<PstlAdr>' . $CrLf;
-			$XML_DEBITOR .= '						<Ctry>' . $row_country_code . '</Ctry>' . $CrLf;
-			$addressline1 = strtr($row_address, array(chr(13) => ", ", chr(10) => ""));
-			$addressline2 = strtr($row_zip . (($row_zip && $row_town) ? ' ' : '') . (string) $row_town, array(chr(13) => ", ", chr(10) => ""));
-			if (trim($addressline1)) {
-				$XML_DEBITOR .= '						<AdrLine>' . dolEscapeXML(dol_trunc(dol_string_nospecial(dol_string_unaccent($addressline1), ' '), 70, 'right', 'UTF-8', 1)) . '</AdrLine>' . $CrLf;
-			}
-			if (trim($addressline2)) {
-				$XML_DEBITOR .= '						<AdrLine>' . dolEscapeXML(dol_trunc(dol_string_nospecial(dol_string_unaccent($addressline2), ' '), 70, 'right', 'UTF-8', 1)) . '</AdrLine>' . $CrLf;
-			}
-			$XML_DEBITOR .= '					</PstlAdr>' . $CrLf;
-			$XML_DEBITOR .= '				</Dbtr>' . $CrLf;
-			$XML_DEBITOR .= '				<DbtrAcct>' . $CrLf;
-			$XML_DEBITOR .= '					<Id>' . $CrLf;
-			$XML_DEBITOR .= '						<IBAN>' . preg_replace('/\s/', '', $row_iban) . '</IBAN>' . $CrLf;
-			$XML_DEBITOR .= '					</Id>' . $CrLf;
-			$XML_DEBITOR .= '				</DbtrAcct>' . $CrLf;
-			$XML_DEBITOR .= '				<RmtInf>' . $CrLf;
-
-			// Structured data for Belgium
-			if (getDolGlobalString('INVOICE_PAYMENT_ENABLE_STRUCTURED_COMMUNICATION') && $mysoc->country_code == 'BE') {
-				include_once DOL_DOCUMENT_ROOT.'/core/lib/functions_be.lib.php';
-
-				$invoicestatic = new Facture($this->db);
-				$invoicestatic->fetch($row_idfac);
-
-				$invoicePaymentKey = dolBECalculateStructuredCommunication($invoicestatic->ref, $invoicestatic->type);
-				$XML_DEBITOR .= '					<strd>' . $invoicePaymentKey . '</strd>' . $CrLf;
-			} else {
-				// A string with some information on payment - 140 max
-				$XML_DEBITOR .= '					<Ustrd>' . getDolGlobalString('PRELEVEMENT_USTRD', dolEscapeXML(dol_trunc(dol_string_nospecial(dol_string_unaccent($row_ref . ($row_comment ? ' - ' . $row_comment : '')), '', '', '', 1), 135, 'right', 'UTF-8', 1))) . '</Ustrd>' . $CrLf; // Free unstuctured data - 140 max
-			}
-			$XML_DEBITOR .= '				</RmtInf>' . $CrLf;
-			$XML_DEBITOR .= '			</DrctDbtTxInf>' . $CrLf;
-			return $XML_DEBITOR;
-		} else {
-			// SEPA Payment Information of seller for Credit Transfer
-			$XML_CREDITOR = '';
-			$XML_CREDITOR .= '			<CdtTrfTxInf>' . $CrLf;
-			$XML_CREDITOR .= '				<PmtId>' . $CrLf;
-			// Add EndToEndId. Must be a unique ID for each payment (for example by including bank, buyer or seller, date, checksum)
-			$XML_CREDITOR .= '					<EndToEndId>' . ((getDolGlobalString('PRELEVEMENT_END_TO_END') != "") ? getDolGlobalString("PRELEVEMENT_END_TO_END") : ('CT-' . dol_trunc($row_idfac . '-' . $row_ref, 20, 'right', 'UTF-8', 1)) . '-' . $Rowing) . '</EndToEndId>' . $CrLf; // ISO20022 states that EndToEndId has a MaxLength of 35 characters
-			$XML_CREDITOR .= '				</PmtId>' . $CrLf;
-			if (!empty($this->sepa_xml_pti_in_ctti)) {
-				$XML_CREDITOR .= '				<PmtTpInf>' . $CrLf;
-
-				// Can be 'NORM' for normal or 'HIGH' for high priority level
-				if (getDolGlobalString('PAYMENTBYBANKTRANSFER_FORCE_HIGH_PRIORITY')) {
-					$instrprty = 'HIGH';
-				} else {
-					$instrprty = 'NORM';
-				}
-
-				// Set $categoryPurpose: CORE, TREA, SUPP, ...
-				$categoryPurpose = getDolGlobalString('PAYMENTBYBANKTRANSFER_CUSTOM_CATEGORY_PURPOSE', 'CORE');
-
-				$XML_CREDITOR .= '					<InstrPrty>' . $instrprty . '</InstrPrty>' . $CrLf;
-				$XML_CREDITOR .= '					<SvcLvl>' . $CrLf;
-				$XML_CREDITOR .= '						<Cd>SEPA</Cd>' . $CrLf;
-				$XML_CREDITOR .= '					</SvcLvl>' . $CrLf;
-				$XML_CREDITOR .= '					<CtgyPurp>' . $CrLf;
-				$XML_CREDITOR .= '						<Cd>' . $categoryPurpose . '</Cd>' . $CrLf;
-				$XML_CREDITOR .= '					</CtgyPurp>' . $CrLf;
-				$XML_CREDITOR .= '				</PmtTpInf>' . $CrLf;
-			}
-			$XML_CREDITOR .= '				<Amt>' . $CrLf;
-			$XML_CREDITOR .= '				<InstdAmt Ccy="EUR">'.round((float) $row_somme, 2).'</InstdAmt>'.$CrLf;
-			$XML_CREDITOR .= '				</Amt>' . $CrLf;
-			/*
-			 $XML_CREDITOR .= '				<DrctDbtTx>'.$CrLf;
-			 $XML_CREDITOR .= '					<MndtRltdInf>'.$CrLf;
-			 $XML_CREDITOR .= '						<MndtId>'.$Rum.'</MndtId>'.$CrLf;
-			 $XML_CREDITOR .= '						<DtOfSgntr>'.$DtOfSgntr.'</DtOfSgntr>'.$CrLf;
-			 $XML_CREDITOR .= '						<AmdmntInd>false</AmdmntInd>'.$CrLf;
-			 $XML_CREDITOR .= '					</MndtRltdInf>'.$CrLf;
-			 $XML_CREDITOR .= '				</DrctDbtTx>'.$CrLf;
-			 */
-			//$XML_CREDITOR .= '				<ChrgBr>SLEV</ChrgBr>'.$CrLf;
-			$XML_CREDITOR .= '				<CdtrAgt>' . $CrLf;
-			$XML_CREDITOR .= '					<FinInstnId>' . $CrLf;
-			$XML_CREDITOR .= '						<BIC>' . $row_bic . '</BIC>' . $CrLf;
-			$XML_CREDITOR .= '					</FinInstnId>' . $CrLf;
-			$XML_CREDITOR .= '				</CdtrAgt>' . $CrLf;
-			$XML_CREDITOR .= '				<Cdtr>' . $CrLf;
-			$XML_CREDITOR .= '					<Nm>' . dolEscapeXML(strtoupper(dol_string_nospecial(dol_string_unaccent($row_nom), ' '))) . '</Nm>' . $CrLf;
-			$XML_CREDITOR .= '					<PstlAdr>' . $CrLf;
-			$XML_CREDITOR .= '						<Ctry>' . $row_country_code . '</Ctry>' . $CrLf;
-			$addressline1 = strtr($row_address, array(chr(13) => ", ", chr(10) => ""));
-			$addressline2 = strtr($row_zip . (($row_zip && $row_town) ? ' ' : '') . (string) $row_town, array(chr(13) => ", ", chr(10) => ""));
-			if (trim($addressline1)) {
-				$XML_CREDITOR .= '						<AdrLine>' . dolEscapeXML(dol_trunc(dol_string_nospecial(dol_string_unaccent($addressline1), ' '), 70, 'right', 'UTF-8', 1)) . '</AdrLine>' . $CrLf;
-			}
-			if (trim($addressline2)) {
-				$XML_CREDITOR .= '						<AdrLine>' . dolEscapeXML(dol_trunc(dol_string_nospecial(dol_string_unaccent($addressline2), ' '), 70, 'right', 'UTF-8', 1)) . '</AdrLine>' . $CrLf;
-			}
-			$XML_CREDITOR .= '					</PstlAdr>' . $CrLf;
-			$XML_CREDITOR .= '				</Cdtr>' . $CrLf;
-			$XML_CREDITOR .= '				<CdtrAcct>' . $CrLf;
-			$XML_CREDITOR .= '					<Id>' . $CrLf;
-			$XML_CREDITOR .= '						<IBAN>' . preg_replace('/\s/', '', $row_iban) . '</IBAN>' . $CrLf;
-			$XML_CREDITOR .= '					</Id>' . $CrLf;
-			$XML_CREDITOR .= '				</CdtrAcct>' . $CrLf;
-			$XML_CREDITOR .= '				<RmtInf>' . $CrLf;
-			// A string with some information on payment - 140 max
-			$XML_CREDITOR .= '					<Ustrd>' . getDolGlobalString('CREDITTRANSFER_USTRD', dolEscapeXML(dol_trunc(dol_string_nospecial(dol_string_unaccent($row_ref . ($row_comment ? ' - ' . $row_comment : '')), '', '', '', 1), 135, 'right', 'UTF-8', 1))) . '</Ustrd>' . $CrLf; // Free unstructured data - 140 max
-			$XML_CREDITOR .= '				</RmtInf>' . $CrLf;
-			$XML_CREDITOR .= '			</CdtTrfTxInf>' . $CrLf;
-			return $XML_CREDITOR;
+		$XML_RESULT = '';
+		if (!is_object($hookmanager)) {
+			include_once DOL_DOCUMENT_ROOT . '/core/class/hookmanager.class.php';
+			$hookmanager = new HookManager($this->db);
 		}
+		$hookmanager->initHooks(array('bonprelevementdao'));
+		$parameters = array(
+			'row_code_client' => &$row_code_client, 'row_nom' => &$row_nom, 'row_address' => &$row_address, 'row_zip' => &$row_zip, 'row_town' => &$row_town,
+			'row_country_code' => &$row_country_code, 'row_cb' => &$row_cb, 'row_cg' => &$row_cg, 'row_cc' => &$row_cc, 'row_somme' => &$row_somme,
+			'row_ref' => &$row_ref, 'row_idfac' => &$row_idfac, 'row_iban' => &$row_iban, 'row_bic' => &$row_bic, 'row_datec' => &$row_datec,
+			'row_drum' => &$row_drum, 'row_rum' => &$row_rum, 'type' => &$type, 'row_comment' => &$row_comment,
+			'crlf' => &$CrLf, 'rowing' => &$Rowing, 'rum' => &$Rum, 'dtofsgntr' => &$DtOfSgntr,
+		);
+		$reshook = $hookmanager->executeHooks('enregDestinataireSEPA', $parameters, $this);    // Note that $action and $object may have been modified by some hooks
+		if (empty($reshook)) {
+			if ($type != 'bank-transfer') {
+				// SEPA Paiement Information of buyer for Direct Debit
+				$XML_DEBITOR = '';
+				$XML_DEBITOR .= '			<DrctDbtTxInf>' . $CrLf;
+				$XML_DEBITOR .= '				<PmtId>' . $CrLf;
+				// Add EndToEndId. Must be a unique ID for each payment (for example by including bank, buyer or seller, date, checksum)
+				$XML_DEBITOR .= '					<EndToEndId>' . ((getDolGlobalString('PRELEVEMENT_END_TO_END') != "") ? $conf->global->PRELEVEMENT_END_TO_END : ('DD-' . dol_trunc($row_idfac . '-' . $row_ref, 20, 'right', 'UTF-8', 1)) . '-' . $Rowing) . '</EndToEndId>' . $CrLf; // ISO20022 states that EndToEndId has a MaxLength of 35 characters
+				$XML_DEBITOR .= '				</PmtId>' . $CrLf;
+				$XML_DEBITOR .= '				<InstdAmt Ccy="EUR">' . $row_somme . '</InstdAmt>' . $CrLf;
+				$XML_DEBITOR .= '				<DrctDbtTx>' . $CrLf;
+				$XML_DEBITOR .= '					<MndtRltdInf>' . $CrLf;
+				$XML_DEBITOR .= '						<MndtId>' . $Rum . '</MndtId>' . $CrLf;
+				$XML_DEBITOR .= '						<DtOfSgntr>' . $DtOfSgntr . '</DtOfSgntr>' . $CrLf;
+				$XML_DEBITOR .= '						<AmdmntInd>false</AmdmntInd>' . $CrLf;
+				$XML_DEBITOR .= '					</MndtRltdInf>' . $CrLf;
+				$XML_DEBITOR .= '				</DrctDbtTx>' . $CrLf;
+				$XML_DEBITOR .= '				<DbtrAgt>' . $CrLf;
+				$XML_DEBITOR .= '					<FinInstnId>' . $CrLf;
+				if (getDolGlobalInt('WITHDRAWAL_WITHOUT_BIC') == 0) {
+					$XML_DEBITOR .= '						<BIC>' . $row_bic . '</BIC>' . $CrLf;
+				}
+				$XML_DEBITOR .= '					</FinInstnId>' . $CrLf;
+				$XML_DEBITOR .= '				</DbtrAgt>' . $CrLf;
+				$XML_DEBITOR .= '				<Dbtr>' . $CrLf;
+				$XML_DEBITOR .= '					<Nm>' . dolEscapeXML(strtoupper(dol_string_nospecial(dol_string_unaccent($row_nom), ' '))) . '</Nm>' . $CrLf;
+				$XML_DEBITOR .= '					<PstlAdr>' . $CrLf;
+				$XML_DEBITOR .= '						<Ctry>' . $row_country_code . '</Ctry>' . $CrLf;
+				$addressline1 = strtr($row_address, array(chr(13) => ", ", chr(10) => ""));
+				$addressline2 = strtr($row_zip . (($row_zip && $row_town) ? ' ' : '') . (string) $row_town, array(chr(13) => ", ", chr(10) => ""));
+				if (trim($addressline1)) {
+					$XML_DEBITOR .= '						<AdrLine>' . dolEscapeXML(dol_trunc(dol_string_nospecial(dol_string_unaccent($addressline1), ' '), 70, 'right', 'UTF-8', 1)) . '</AdrLine>' . $CrLf;
+				}
+				if (trim($addressline2)) {
+					$XML_DEBITOR .= '						<AdrLine>' . dolEscapeXML(dol_trunc(dol_string_nospecial(dol_string_unaccent($addressline2), ' '), 70, 'right', 'UTF-8', 1)) . '</AdrLine>' . $CrLf;
+				}
+				$XML_DEBITOR .= '					</PstlAdr>' . $CrLf;
+				$XML_DEBITOR .= '				</Dbtr>' . $CrLf;
+				$XML_DEBITOR .= '				<DbtrAcct>' . $CrLf;
+				$XML_DEBITOR .= '					<Id>' . $CrLf;
+				$XML_DEBITOR .= '						<IBAN>' . preg_replace('/\s/', '', $row_iban) . '</IBAN>' . $CrLf;
+				$XML_DEBITOR .= '					</Id>' . $CrLf;
+				$XML_DEBITOR .= '				</DbtrAcct>' . $CrLf;
+				$XML_DEBITOR .= '				<RmtInf>' . $CrLf;
+
+				// Structured data for Belgium
+				if (getDolGlobalString('INVOICE_PAYMENT_ENABLE_STRUCTURED_COMMUNICATION') && $mysoc->country_code == 'BE') {
+					include_once DOL_DOCUMENT_ROOT . '/core/lib/functions_be.lib.php';
+
+					$invoicestatic = new Facture($this->db);
+					$invoicestatic->fetch($row_idfac);
+
+					$invoicePaymentKey = dolBECalculateStructuredCommunication($invoicestatic->ref, $invoicestatic->type);
+					$XML_DEBITOR .= '					<strd>' . $invoicePaymentKey . '</strd>' . $CrLf;
+				} else {
+					// A string with some information on payment - 140 max
+					$XML_DEBITOR .= '					<Ustrd>' . getDolGlobalString('PRELEVEMENT_USTRD', dolEscapeXML(dol_trunc(dol_string_nospecial(dol_string_unaccent($row_ref . ($row_comment ? ' - ' . $row_comment : '')), '', '', '', 1), 135, 'right', 'UTF-8', 1))) . '</Ustrd>' . $CrLf; // Free unstuctured data - 140 max
+				}
+				$XML_DEBITOR .= '				</RmtInf>' . $CrLf;
+				$XML_DEBITOR .= '			</DrctDbtTxInf>' . $CrLf;
+
+				$XML_RESULT = $XML_DEBITOR;
+			} else {
+				// SEPA Payment Information of seller for Credit Transfer
+				$XML_CREDITOR = '';
+				$XML_CREDITOR .= '			<CdtTrfTxInf>' . $CrLf;
+				$XML_CREDITOR .= '				<PmtId>' . $CrLf;
+				// Add EndToEndId. Must be a unique ID for each payment (for example by including bank, buyer or seller, date, checksum)
+				$XML_CREDITOR .= '					<EndToEndId>' . ((getDolGlobalString('PRELEVEMENT_END_TO_END') != "") ? getDolGlobalString("PRELEVEMENT_END_TO_END") : ('CT-' . dol_trunc($row_idfac . '-' . $row_ref, 20, 'right', 'UTF-8', 1)) . '-' . $Rowing) . '</EndToEndId>' . $CrLf; // ISO20022 states that EndToEndId has a MaxLength of 35 characters
+				$XML_CREDITOR .= '				</PmtId>' . $CrLf;
+				if (!empty($this->sepa_xml_pti_in_ctti)) {
+					$XML_CREDITOR .= '				<PmtTpInf>' . $CrLf;
+
+					// Can be 'NORM' for normal or 'HIGH' for high priority level
+					if (getDolGlobalString('PAYMENTBYBANKTRANSFER_FORCE_HIGH_PRIORITY')) {
+						$instrprty = 'HIGH';
+					} else {
+						$instrprty = 'NORM';
+					}
+
+					// Set $categoryPurpose: CORE, TREA, SUPP, ...
+					$categoryPurpose = getDolGlobalString('PAYMENTBYBANKTRANSFER_CUSTOM_CATEGORY_PURPOSE', 'CORE');
+
+					$XML_CREDITOR .= '					<InstrPrty>' . $instrprty . '</InstrPrty>' . $CrLf;
+					$XML_CREDITOR .= '					<SvcLvl>' . $CrLf;
+					$XML_CREDITOR .= '						<Cd>SEPA</Cd>' . $CrLf;
+					$XML_CREDITOR .= '					</SvcLvl>' . $CrLf;
+					$XML_CREDITOR .= '					<CtgyPurp>' . $CrLf;
+					$XML_CREDITOR .= '						<Cd>' . $categoryPurpose . '</Cd>' . $CrLf;
+					$XML_CREDITOR .= '					</CtgyPurp>' . $CrLf;
+					$XML_CREDITOR .= '				</PmtTpInf>' . $CrLf;
+				}
+				$XML_CREDITOR .= '				<Amt>' . $CrLf;
+				$XML_CREDITOR .= '				<InstdAmt Ccy="EUR">' . round((float) $row_somme, 2) . '</InstdAmt>' . $CrLf;
+				$XML_CREDITOR .= '				</Amt>' . $CrLf;
+				/*
+				 $XML_CREDITOR .= '				<DrctDbtTx>'.$CrLf;
+				 $XML_CREDITOR .= '					<MndtRltdInf>'.$CrLf;
+				 $XML_CREDITOR .= '						<MndtId>'.$Rum.'</MndtId>'.$CrLf;
+				 $XML_CREDITOR .= '						<DtOfSgntr>'.$DtOfSgntr.'</DtOfSgntr>'.$CrLf;
+				 $XML_CREDITOR .= '						<AmdmntInd>false</AmdmntInd>'.$CrLf;
+				 $XML_CREDITOR .= '					</MndtRltdInf>'.$CrLf;
+				 $XML_CREDITOR .= '				</DrctDbtTx>'.$CrLf;
+				 */
+				//$XML_CREDITOR .= '				<ChrgBr>SLEV</ChrgBr>'.$CrLf;
+				$XML_CREDITOR .= '				<CdtrAgt>' . $CrLf;
+				$XML_CREDITOR .= '					<FinInstnId>' . $CrLf;
+				$XML_CREDITOR .= '						<BIC>' . $row_bic . '</BIC>' . $CrLf;
+				$XML_CREDITOR .= '					</FinInstnId>' . $CrLf;
+				$XML_CREDITOR .= '				</CdtrAgt>' . $CrLf;
+				$XML_CREDITOR .= '				<Cdtr>' . $CrLf;
+				$XML_CREDITOR .= '					<Nm>' . dolEscapeXML(strtoupper(dol_string_nospecial(dol_string_unaccent($row_nom), ' '))) . '</Nm>' . $CrLf;
+				$XML_CREDITOR .= '					<PstlAdr>' . $CrLf;
+				$XML_CREDITOR .= '						<Ctry>' . $row_country_code . '</Ctry>' . $CrLf;
+				$addressline1 = strtr($row_address, array(chr(13) => ", ", chr(10) => ""));
+				$addressline2 = strtr($row_zip . (($row_zip && $row_town) ? ' ' : '') . (string) $row_town, array(chr(13) => ", ", chr(10) => ""));
+				if (trim($addressline1)) {
+					$XML_CREDITOR .= '						<AdrLine>' . dolEscapeXML(dol_trunc(dol_string_nospecial(dol_string_unaccent($addressline1), ' '), 70, 'right', 'UTF-8', 1)) . '</AdrLine>' . $CrLf;
+				}
+				if (trim($addressline2)) {
+					$XML_CREDITOR .= '						<AdrLine>' . dolEscapeXML(dol_trunc(dol_string_nospecial(dol_string_unaccent($addressline2), ' '), 70, 'right', 'UTF-8', 1)) . '</AdrLine>' . $CrLf;
+				}
+				$XML_CREDITOR .= '					</PstlAdr>' . $CrLf;
+				$XML_CREDITOR .= '				</Cdtr>' . $CrLf;
+				$XML_CREDITOR .= '				<CdtrAcct>' . $CrLf;
+				$XML_CREDITOR .= '					<Id>' . $CrLf;
+				$XML_CREDITOR .= '						<IBAN>' . preg_replace('/\s/', '', $row_iban) . '</IBAN>' . $CrLf;
+				$XML_CREDITOR .= '					</Id>' . $CrLf;
+				$XML_CREDITOR .= '				</CdtrAcct>' . $CrLf;
+				$XML_CREDITOR .= '				<RmtInf>' . $CrLf;
+				// A string with some information on payment - 140 max
+				$XML_CREDITOR .= '					<Ustrd>' . getDolGlobalString('CREDITTRANSFER_USTRD', dolEscapeXML(dol_trunc(dol_string_nospecial(dol_string_unaccent($row_ref . ($row_comment ? ' - ' . $row_comment : '')), '', '', '', 1), 135, 'right', 'UTF-8', 1))) . '</Ustrd>' . $CrLf; // Free unstructured data - 140 max
+				$XML_CREDITOR .= '				</RmtInf>' . $CrLf;
+				$XML_CREDITOR .= '			</CdtTrfTxInf>' . $CrLf;
+
+				$XML_RESULT = $XML_CREDITOR;
+			}
+		} elseif ($reshook > 0) {
+			$XML_RESULT = $hookmanager->resPrint;
+		} else {
+			$XML_RESULT .= $hookmanager->resPrint;
+		}
+		return $XML_RESULT;
 	}
 
 

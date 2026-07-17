@@ -333,4 +333,36 @@ ALTER TABLE llx_webhook_history MODIFY COLUMN url varchar(255);
 
 UPDATE llx_c_socialnetworks SET icon = 'fa-mastodon' WHERE icon = '' AND code = 'mastodon';
 
+-- default deposit % if payment term needs it on supplier
+ALTER TABLE llx_supplier_proposal ADD COLUMN deposit_percent varchar(63) DEFAULT NULL AFTER fk_cond_reglement;
+ALTER TABLE llx_commande_fournisseur ADD COLUMN deposit_percent varchar(63) DEFAULT NULL AFTER fk_cond_reglement;
+
 ALTER TABLE llx_adherent MODIFY COLUMN societe VARCHAR(128);
+
+-- ---------------
+-- AJOUTS OSDEN
+-- ---------------
+
+UPDATE llx_const SET name = 'MAIL_MASS_ACTION_SEARCH_MOST_RECENT_FILE_IF_NOT_FOUND' WHERE name = 'ESAYA_SEND_EMAIL_IN_MASS_MOST_RECENT_FILE_IF_NOT_FOUND';
+
+-- AI module: request/audit log table for the AI Assistant and MCP server (backported from Dolibarr 24)
+create table if not exists llx_ai_request_log
+(
+  rowid						integer AUTO_INCREMENT PRIMARY KEY,
+  entity					integer DEFAULT 1 NOT NULL,
+  date_request				datetime,
+  fk_user					integer NOT NULL,
+  fk_actioncomm				integer,
+  query_text				text,
+  tool_name					varchar(255),
+  provider					varchar(50),
+  execution_time			float,
+  confidence				float,
+  status					varchar(50),
+  error_msg					text,
+  input_hash				varchar(80),
+  output_hash				varchar(80),
+  security_hash				varchar(80),
+  raw_request_payload		MEDIUMTEXT,
+  raw_response_payload		MEDIUMTEXT
+)ENGINE=innodb;
