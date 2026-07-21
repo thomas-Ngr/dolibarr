@@ -749,10 +749,9 @@ if (empty($reshook)) {
 					$discount->multicurrency_total_tva = abs((float) $multicurrency_amount_tva[$tva_tx]);
 					$discount->multicurrency_total_ttc = abs((float) $multicurrency_amount_ttc[$tva_tx]);
 					// keep compatibility
-					$discount->multicurrency_amount_ht = $discount->multicurrency_total_ht;
-					$discount->multicurrency_amount_tva = $discount->multicurrency_total_tva;
-					$discount->multicurrency_amount_ttc = $discount->multicurrency_total_ttc;
-
+					$discount->multicurrency_amount_ht = abs((float) $discount->multicurrency_total_ht);
+					$discount->multicurrency_amount_tva = abs((float) $discount->multicurrency_total_tva);
+					$discount->multicurrency_amount_ttc = abs((float) $discount->multicurrency_total_ttc);
 					// Clean vat code
 					$reg = array();
 					$vat_src_code = '';
@@ -3356,7 +3355,7 @@ if ($action == 'create') {
 		// Thirdparty
 		$morehtmlref .= '<br>'.$object->thirdparty->getNomUrl(1, 'supplier');
 		if (!getDolGlobalString('MAIN_DISABLE_OTHER_LINK') && $object->thirdparty->id > 0) {
-			$morehtmlref .= ' <div class="inline-block valignmiddle">(<a class="valignmiddle" href="'.DOL_URL_ROOT.'/fourn/facture/list.php?socid='.((int) $object->thirdparty->id).'&search_company='.urlencode($object->thirdparty->name).'">'.$langs->trans("OtherBills").'</a>)</div>';
+			$morehtmlref .= ' <div class="inline-block valignmiddle">(<a class="valignmiddle" href="'.DOL_URL_ROOT.'/fourn/facture/list.php?socid='.((int) $object->thirdparty->id).'">'.$langs->trans("OtherBills").'</a>)</div>';
 		}
 		// Project
 		if (isModEnabled('project')) {
