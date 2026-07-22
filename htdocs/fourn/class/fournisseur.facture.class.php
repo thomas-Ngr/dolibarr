@@ -1090,6 +1090,7 @@ class FactureFournisseur extends CommonInvoice
 					$line->subprice         = $obj->pu_ht;
 					$line->pu_ht            = $obj->pu_ht;
 					$line->pu_ttc			= $obj->pu_ttc;
+					$line->subprice_ttc     = $obj->pu_ttc;
 					$line->vat_src_code     = $obj->vat_src_code;
 					$line->tva_tx			= $obj->tva_tx;
 					$line->localtax1_tx		= $obj->localtax1_tx;
@@ -2486,6 +2487,7 @@ class FactureFournisseur extends CommonInvoice
 		$line->qty = ($this->type == self::TYPE_CREDIT_NOTE ? abs((float) $qty) : (float) $qty); // For credit note, quantity is always positive and unit price negative
 		$line->subprice = ($this->type == self::TYPE_CREDIT_NOTE ? -abs((float) $pu_ht) : (float) $pu_ht); // For credit note, unit price always negative, always positive otherwise
 		$line->pu_ht = $line->subprice;  // deprecated
+		$line->subprice_ttc = ($this->type == self::TYPE_CREDIT_NOTE ? -abs((float) $pu_ttc) : (float) $pu_ttc); // For credit note, unit price always negative, always positive otherwise
 		$line->pu_ttc = ($this->type == self::TYPE_CREDIT_NOTE ? -abs((float) $pu_ttc) : (float) $pu_ttc); // For credit note, unit price always negative, always positive otherwise
 
 		$line->remise_percent = $remise_percent;

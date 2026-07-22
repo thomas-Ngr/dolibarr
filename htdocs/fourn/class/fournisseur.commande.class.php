@@ -651,7 +651,7 @@ class CommandeFournisseur extends CommonOrder
 		$this->lines = array();
 
 		$sql = "SELECT l.rowid, l.fk_commande, l.ref as ref_supplier, l.fk_product, l.product_type, l.label, l.description, l.qty,";
-		$sql .= " l.vat_src_code, l.tva_tx, l.remise_percent, l.subprice,";
+		$sql .= " l.vat_src_code, l.tva_tx, l.remise_percent, l.subprice, l.subprice_ttc,";
 		$sql .= " l.localtax1_tx, l. localtax2_tx, l.localtax1_type, l. localtax2_type, l.total_localtax1, l.total_localtax2,";
 		$sql .= " l.total_ht, l.total_tva, l.total_ttc, l.info_bits, l.special_code, l.fk_parent_line, l.rang,";
 		$sql .= " p.rowid as product_id, p.ref as product_ref, p.label as product_label, p.description as product_desc, p.tobatch as product_tobatch, p.barcode as product_barcode,";
@@ -691,6 +691,8 @@ class CommandeFournisseur extends CommonOrder
 				$line->localtax2_type	   = $objp->localtax2_type;
 				$line->subprice            = $objp->subprice;
 				$line->pu_ht = $objp->subprice;
+				$line->subprice_ttc        = $objp->subprice_ttc;
+				$line->pu_ttc 			   = $objp->subprice_ttc;	// deprecated
 				$line->remise_percent      = $objp->remise_percent;
 
 				$line->vat_src_code        = $objp->vat_src_code;
@@ -2224,6 +2226,7 @@ class CommandeFournisseur extends CommonOrder
 			$this->line->product_type = $product_type;
 			$this->line->remise_percent = $remise_percent;
 			$this->line->subprice = (float) $pu_ht;
+			$this->line->subprice_ttc = (float) $pu_ttc;
 			$this->line->rang = $rang;
 			$this->line->info_bits = $info_bits;
 
@@ -3221,6 +3224,7 @@ class CommandeFournisseur extends CommonOrder
 			$this->line->localtax2_type = empty($localtaxes_type[2]) ? '' : $localtaxes_type[2];
 			$this->line->remise_percent = $remise_percent;
 			$this->line->subprice       = (float) $pu_ht;
+			$this->line->subprice_ttc   = (float) $pu_ttc;
 			$this->line->info_bits      = $info_bits;
 			$this->line->total_ht       = (float) $total_ht;
 			$this->line->total_tva      = (float) $total_tva;
@@ -3245,6 +3249,7 @@ class CommandeFournisseur extends CommonOrder
 			$this->line->multicurrency_total_ttc 	= (float) $multicurrency_total_ttc;
 
 			$this->line->subprice = (float) $pu_ht;
+			$this->line->subprice_ttc = (float) $pu_ttc;
 			$this->line->price = $this->line->subprice;
 
 			$this->line->remise_percent = $remise_percent;
