@@ -1804,17 +1804,12 @@ if (empty($reshook)) {
 				}
 
 				$prod = new Product($db);
-				$res = $prod->fetch($line->fk_product);
-				if ($res > 0) {
-					if ($prod->price_min > $line->subprice) {
-						$price_subprice = price($line->subprice, 0, $outlangs, 1, -1, -1, 'auto');
-						$price_price_min = price($prod->price_min, 0, $outlangs, 1, -1, -1, 'auto');
-						setEventMessages($prod->ref . ' - ' . $prod->label . ' (' . $price_subprice . ' < ' . $price_price_min . ' ' . strtolower($langs->trans("MinPrice")) . ')' . "\n", null, 'warnings');
-					} else {
-						setEventMessages($prod->error, $prod->errors, 'errors');
-					}
-				} else {
-					setEventMessages($prod->error, $prod->errors, 'errors');
+				$prod = new Product($db);
+				$prod->fetch($line->fk_product);
+				if ($prod->price_min > $line->subprice) {
+					$price_subprice  = price($line->subprice, 0, $outlangs, 1, -1, -1, 'auto');
+					$price_price_min = price($prod->price_min, 0, $outlangs, 1, -1, -1, 'auto');
+					setEventMessages($prod->ref . ' - ' . $prod->label . ' (' . $price_subprice . ' < ' . $price_price_min . ' ' . strtolower($langs->trans("MinPrice")) . ')' . "\n", null, 'warnings');
 				}
 
 				// Manage $line->subprice and $line->multicurrency_subprice
