@@ -5586,9 +5586,10 @@ abstract class CommonObject
 	 *
 	 *	@param	''|'services'	$restrictlist	''=All lines, 'services'=Restrict to services only
 	 *  @param  int[]       $selectedLines      Array of lines id for selected lines
+	 *  @param  int[]		$supportedProductTypes	Array of supported product types
 	 *  @return	void
 	 */
-	public function printOriginLinesList($restrictlist = '', $selectedLines = array())
+	public function printOriginLinesList($restrictlist = '', $selectedLines = array(), $supportedProductTypes = array())
 	{
 		global $langs, $hookmanager, $form, $action;
 
@@ -5624,7 +5625,7 @@ abstract class CommonObject
 					}
 					$reshook = $hookmanager->executeHooks('printOriginObjectLine', $parameters, $this, $action); // Note that $action and $object may have been modified by some hooks
 				}
-				if (empty($reshook)) {
+				if (empty($reshook) && (empty($supportedProductTypes) || in_array((int) ($line->product_type ?? 0), $supportedProductTypes))) {
 					$this->printOriginLine($line, '', $restrictlist, '/core/tpl', $selectedLines);
 				}
 
@@ -9372,7 +9373,7 @@ abstract class CommonObject
 						// Otherwise, they would be empty after an update of the object. See also getOptionalsFromPost
 						// TODO: We should not have this hidden field, and action='update' should be done only if field was POSTED by form.
 						$ef_name = 'options_' . $key;
-						$ef_value = $this->array_options[$ef_name];
+						$ef_value = isset($this->array_options[$ef_name]) ? $this->array_options[$ef_name] : '';
 						$out .= '<input type="hidden" name="' . $ef_name . '" id="' . $ef_name . '" value="' . dolPrintHTMLForAttribute($ef_value) . '" />' . "\n";
 						continue; // <> -1 and <> 1 and <> 3 = not visible on forms, only on list and <> 4 = not visible at the creation
 					} elseif ($mode == 'view' && empty($visibility)) {
@@ -9741,7 +9742,7 @@ abstract class CommonObject
 			return $user->hasRight($module, $element);
 		}
 
-		return $user->rights->$element;
+		return isset($user->rights->$element) ? $user->rights->$element : null;
 	}
 
 	/**
@@ -10203,7 +10204,7 @@ abstract class CommonObject
 	public function isInt($info)
 	{
 		if (is_array($info)) {
-			if (isset($info['type']) && (preg_match('/(^int|int$)/i', $info['type']))) {
+			if (isset($info['type']) && (preg_match('/^(?:tiny|small|medium|big)?int|int$/i', $info['type']))) {
 				return true;
 			} else {
 				return false;
