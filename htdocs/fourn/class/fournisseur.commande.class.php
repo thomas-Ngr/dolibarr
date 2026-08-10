@@ -1693,6 +1693,12 @@ class CommandeFournisseur extends CommonOrder
 					//$this->special_code = $line->special_code; // TODO : remove this in 9.0 and add special_code param to addline()
 
 					// This include test on qty if option SUPPLIER_ORDER_WITH_NOPRICEDEFINED is not set
+					// Preserve the original entry mode of the line so the total is computed from the typed value (no rounding drift).
+					// In TTC mode, do not forward the HT currency price as pu_ht_devise: under multicurrency it would
+					// reset the local price and recompute from the HT currency amount (read as TTC) -> 0.01 drift.
+					// Like SupplierProposal (which does not pass it), the currency price is re-derived from the local price.
+					$line_price_base_type = (isset($line->subprice_ttc) && (float) $line->subprice_ttc != 0) ? 'TTC' : 'HT';
+					$line_pu_devise = ($line_price_base_type === 'TTC') ? 0 : (float) $line->multicurrency_subprice;
 					$result = $this->addline(
 						$line->desc,
 						$line->subprice,
@@ -1704,8 +1710,8 @@ class CommandeFournisseur extends CommonOrder
 						0,
 						$line->ref_fourn ?? '', // $line->ref_fourn comes from field ref into table of lines. Value may ba a ref that does not exists anymore, so we first try with value of product
 						$line->remise_percent,
-						'HT',
-						0,
+						$line_price_base_type,
+						(float) $line->subprice_ttc,
 						$line->product_type,
 						$line->info_bits ?? 0,
 						0,
@@ -1713,7 +1719,7 @@ class CommandeFournisseur extends CommonOrder
 						$line->date_end ?? null,
 						$line->array_options ?? [],
 						$line->fk_unit ?? null,
-						$line->multicurrency_subprice ?? 0,  // pu_ht_devise
+						$line_pu_devise,  // pu_ht_devise
 						$line->origin ?? '',     // origin
 						$line->origin_id ?? 0,  // origin_id
 						$line->rang ?? -1,       // rang
@@ -2226,7 +2232,7 @@ class CommandeFournisseur extends CommonOrder
 			$this->line->product_type = $product_type;
 			$this->line->remise_percent = $remise_percent;
 			$this->line->subprice = (float) $pu_ht;
-			$this->line->subprice_ttc = (float) $pu_ttc;
+			$this->line->subprice_ttc = ($price_base_type === 'TTC') ? (float) $pu_ttc : 0;
 			$this->line->rang = $rang;
 			$this->line->info_bits = $info_bits;
 
@@ -3249,7 +3255,7 @@ class CommandeFournisseur extends CommonOrder
 			$this->line->multicurrency_total_ttc 	= (float) $multicurrency_total_ttc;
 
 			$this->line->subprice = (float) $pu_ht;
-			$this->line->subprice_ttc = (float) $pu_ttc;
+			$this->line->subprice_ttc = ($price_base_type === 'TTC') ? (float) $pu_ttc : 0;
 			$this->line->price = $this->line->subprice;
 
 			$this->line->remise_percent = $remise_percent;
