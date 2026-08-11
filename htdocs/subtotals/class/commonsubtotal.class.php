@@ -493,7 +493,7 @@ trait CommonSubtotal
 			} else {
 				if ($current_module == 'facture') {
 					// Preserve the original entry mode of the line so the total is not drifted by rounding.
-					$line_price_base_type = $this->lines[$i]->wasEnteredIncludingTax() ? 'TTC' : 'HT';
+					$line_price_base_type = $this->lines[$i]->getPriceBaseType();
 					$line_pu = ($line_price_base_type === 'TTC') ? $this->lines[$i]->subprice_ttc : $this->lines[$i]->subprice;
 					$result = $this->updateline( // @phpstan-ignore-line
 						$this->lines[$i]->id, // @phpstan-ignore-line
@@ -521,7 +521,7 @@ trait CommonSubtotal
 					);
 				} elseif ($current_module == 'commande') {
 					// Preserve the original entry mode of the line so the total is not drifted by rounding.
-					$line_price_base_type = $this->lines[$i]->wasEnteredIncludingTax() ? 'TTC' : 'HT';
+					$line_price_base_type = $this->lines[$i]->getPriceBaseType();
 					$line_pu = ($line_price_base_type === 'TTC') ? $this->lines[$i]->subprice_ttc : $this->lines[$i]->subprice;
 					$result = $this->updateline( // @phpstan-ignore-line
 						$this->lines[$i]->id, // @phpstan-ignore-line
@@ -548,7 +548,7 @@ trait CommonSubtotal
 					);
 				} elseif ($current_module == 'propal') {
 					// Preserve the original entry mode of the line so the total is not drifted by rounding.
-					$line_price_base_type = $this->lines[$i]->wasEnteredIncludingTax() ? 'TTC' : 'HT';
+					$line_price_base_type = $this->lines[$i]->getPriceBaseType();
 					$line_pu = ($line_price_base_type === 'TTC') ? $this->lines[$i]->subprice_ttc : $this->lines[$i]->subprice;
 					$result = $this->updateline( // @phpstan-ignore-line
 						$this->lines[$i]->id, // @phpstan-ignore-line
