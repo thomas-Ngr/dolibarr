@@ -3148,7 +3148,6 @@ if (empty($reshook)) {
 
 		$remise_percent = price2num(GETPOST('remise_percent'), '', 2);
 
-		$price_base_type = 'HT';
 		// The form JS clears the other field when the user edits one of them: only the modified field is filled.
 		// When both fields are submitted, the user did not change the price - we must preserve the original
 		// storage mode of the line, otherwise a no-op save would shift the total by rounding.
