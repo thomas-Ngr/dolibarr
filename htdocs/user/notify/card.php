@@ -126,7 +126,9 @@ if ($action == 'add') {
 
 // Remove a notification
 if ($action == 'delete') {
-	$sql = "DELETE FROM ".MAIN_DB_PREFIX."notify_def where rowid=".GETPOST("actid", "int");
+	$sql = "DELETE FROM ".MAIN_DB_PREFIX."notify_def";
+	$sql .= " WHERE rowid = ".((int) GETPOST("actid", "int"));
+	$sql .= " AND fk_user = ".((int) $id);
 	$db->query($sql);
 }
 
