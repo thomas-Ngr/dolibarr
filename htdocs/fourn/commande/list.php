@@ -260,7 +260,7 @@ if (empty($reshook)) {
 	include DOL_DOCUMENT_ROOT.'/core/actions_massactions.inc.php';
 
 	// Mass action to generate vendor bills
-	if ($massaction == 'confirm_createsupplierbills') {
+	if ($massaction == 'confirm_createsupplierbills' && (!empty($user->rights->fournisseur->facture->creer) || !empty($user->rights->supplier_invoice->creer))) {
 		$orders = GETPOST('toselect', 'array');
 		$createbills_onebythird = GETPOST('createbills_onebythird', 'int');
 		$validate_invoices = GETPOST('validate_invoices', 'int');
